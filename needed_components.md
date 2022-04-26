@@ -106,7 +106,6 @@ The names of the ports need be in sync with [``tc2verilog/tc_components.py``](tc
 | Console                | (later)        |                 |
 | ByteShl                | yes            |                 |
 | ByteShr                | yes            |                 |
-|
 | QwordConstant          | yes            |                 |
 | QwordNot               | yes            |                 |
 | QwordOr                | yes            |                 |
@@ -122,36 +121,27 @@ The names of the ports need be in sync with [``tc2verilog/tc_components.py``](tc
 | QwordShr               | yes            |                 |
 | QwordMux               | yes            |                 |
 | QwordSwitch            | yes            |                 |
-|
 | ProbeComponentBit      |                |                 |
 | ProbeComponentWord     |                |                 |
-|
 | AndOrLatch             | yes            |                 |
 | NandNandLatch          | yes            |                 |
 | NorNorLatch            | yes            |                 |
-|
 | ByteLessU              | yes            |                 |
 | ByteLessI              | yes            |                 |
-|
 | DotMatrixDisplay       | (later)        |                 |
 | SegmentDisplay         | (later)        |                 |
-|
 | Input16                |                |                 |
 | Input32                |                |                 |
-|
 | Output16               |                |                 |
 | Output32               |                |                 |
-|
 | Bidirectional1         |                |                 |
 | Bidirectional8         |                |                 |
 | Bidirectional16        |                |                 |
 | Bidirectional32        |                |                 |
 | Bidirectional64        |                |                 |
-|
 | Buffer8                |                |                 |
 | Buffer16               |                |                 |
 | Buffer32               |                |                 |
 | Buffer64               |                |                 |
-|
 | ProbeWireBit           |                |                 |
 | ProbeWireWord          |                |                 |
