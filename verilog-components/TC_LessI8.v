@@ -1,8 +1,8 @@
-module TC_ByteLessI(a, b, out);
-    input signed [7:0] a;
-    input signed [7:0] b;
+module TC_ByteLessI(in0, in1, out);
+    input signed [7:0] in0;
+    input signed [7:0] in1;
     output out;
     
-    assign out = a < b;
+    assign out = in0 < in1;
 endmodule
 

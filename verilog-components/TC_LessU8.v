@@ -1,8 +1,8 @@
-module TC_LessU8(a, b, out);
-    input [7:0] a;
-    input [7:0] b;
+module TC_LessU8(in0, in1, out);
+    input [7:0] in0;
+    input [7:0] in1;
     output out;
     
-    assign out = a < b;
+    assign out = in0 < in1;
 endmodule
 

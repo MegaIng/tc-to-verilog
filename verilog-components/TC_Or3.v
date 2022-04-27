@@ -1,9 +1,9 @@
-module TC_Or3(a, b, c, out);
-    input a;
-    input b;
-    input c;
+module TC_Or3(in0, in1, in2, out);
+    input in0;
+    input in1;
+    input in2;
     output out;
     
-    assign out = a | b | c;
+    assign out = in0 | in1 | in2;
 endmodule
 

@@ -29,8 +29,8 @@ class Not(_TCComponent):
 
 class Nand(_TCComponent):
     pins = [
-        _In("a", (-1, 1), 1),
-        _In("b", (-1, -1), 1),
+        _In("in0", (-1, 1), 1),
+        _In("in1", (-1, -1), 1),
 
         _Out("out", (2, 0), 1),
     ]
@@ -38,8 +38,8 @@ class Nand(_TCComponent):
 
 class And(_TCComponent):
     pins = [
-        _In("a", (-1, 1), 1),
-        _In("b", (-1, -1), 1),
+        _In("in0", (-1, 1), 1),
+        _In("in1", (-1, -1), 1),
 
         _Out("out", (2, 0), 1),
     ]
@@ -47,8 +47,8 @@ class And(_TCComponent):
 
 class Or(_TCComponent):
     pins = [
-        _In("a", (-1, 1), 1),
-        _In("b", (-1, -1), 1),
+        _In("in0", (-1, 1), 1),
+        _In("in1", (-1, -1), 1),
 
         _Out("out", (2, 0), 1),
     ]
@@ -56,8 +56,8 @@ class Or(_TCComponent):
 
 class Nor(_TCComponent):
     pins = [
-        _In("a", (-1, 1), 1),
-        _In("b", (-1, -1), 1),
+        _In("in0", (-1, 1), 1),
+        _In("in1", (-1, -1), 1),
 
         _Out("out", (2, 0), 1),
     ]

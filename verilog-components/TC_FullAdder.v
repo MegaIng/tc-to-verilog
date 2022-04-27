@@ -1,11 +1,11 @@
-module TC_FullAdder (a, b, ci, out, co)
-    input a;
-    input b;
+module TC_FullAdder (in0, in1, ci, out, co)
+    input in0;
+    input in1;
     input ci;
     output out;
     output co;
     
-    assign out = a ^ b ^ ci;
-    assign co = (a & b) | ((a ^ b) & ci);
+    assign out = in0 ^ in1 ^ ci;
+    assign co = (in0 & in1) | ((in0 ^ in1) & ci);
 endmodule
 
