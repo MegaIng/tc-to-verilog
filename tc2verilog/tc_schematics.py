@@ -80,9 +80,23 @@ class TCComponent:
     def custom_string(self) -> int:
         return self.raw_nim_data["custom_string"]
 
+    @property
+    def verilog_name(self):
+        return f"TC_{type(self).__name__}"
+
+    @property
+    def positioned_pins(self) -> list[tuple[tuple[int, int], TCPin]]:
+        return [((self.x + p.rel_pos[0], self.y + p.rel_pos[1]), p) for p in self.pins]
+
 
 class NeedsClock(TCComponent):
     needs_clock: bool = True
+
+
+class IOComponent(TCComponent):
+    size: ClassVar[Size]
+    verilog_type: ClassVar[str]
+
 
 @dataclass
 class TCWire:
@@ -152,7 +166,7 @@ class TCSchematic:
         return pins
 
     @cached_property
-    def named_pins_by_name(self) -> dict[str, TCComponent]:
+    def named_io_by_name(self) -> dict[str, IOComponent]:
         out = {}
         for com in self.components:
             if isinstance(com, (tc_components._SimpleInput, tc_components._SimpleOutput)):
@@ -163,7 +177,7 @@ class TCSchematic:
     @cached_property
     def named_pins_by_position(self) -> dict[tuple[int, int], tuple[str, TCComponent]]:
         out = {}
-        for name, com in self.named_pins_by_name.items():
+        for name, com in self.named_io_by_name.items():
             out[com.pos] = name, com
         return out
 

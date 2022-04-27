@@ -1,9 +1,8 @@
 from typing import ClassVar as _ClassVar
 
 from tc2verilog.tc_schematics import TCComponent as _TCComponent, Out as _Out, OutTri as _OutTri, In as _In, \
-    InSquare as _InSquare, Unbuffered as _Unbuffered, Size as _Size, NeedsClock as _NeedsClock
-
-
+    InSquare as _InSquare, Unbuffered as _Unbuffered, Size as _Size, NeedsClock as _NeedsClock, \
+    IOComponent as _IOComponent
 
 
 # region Bit Gates
@@ -76,18 +75,14 @@ class Register8(_NeedsClock):
         _OutTri("load_value", (1, 0), 8),
     ]
 
+
 # endregion
-
-
-class _IO(_TCComponent):
-    size: _ClassVar[_Size]
-    verilog_type: _ClassVar[str]
 
 
 # region Input Gates
 
 
-class _SimpleInput(_IO):
+class _SimpleInput(_IOComponent):
     verilog_type = "input wire"
 
 
@@ -95,17 +90,27 @@ class Input1(_SimpleInput):
     size = 1
     pins = [_Out("value", (1, 0), 1)]
 
+
 # endregion
 
 # region Output Gates
 
 
-class _SimpleOutput(_TCComponent):
+class _SimpleOutput(_IOComponent):
     verilog_type = "output wire"
 
 
 class Output1(_SimpleOutput):
     size = 1
     pins = [_In("value wire", (-1, 0), 1)]
+
+
+class Output1Sum(Output1):
+    pass
+
+
+class Output1Car(Output1):
+    pass
+
 
 # endregion
