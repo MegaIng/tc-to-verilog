@@ -1,8 +1,8 @@
-module TC_And(a, b, out);
-    input a;
-    input b;
+module TC_And(in0, in1, out);
+    input in0;
+    input in1;
     output out;
     
-    assign out = a & b;
+    assign out = in0 & in1;
 endmodule
 
