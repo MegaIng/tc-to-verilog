@@ -5,17 +5,13 @@ The names of the ports need be in sync with [``tc2verilog/tc_components.py``](tc
 
 ---
 
-logxen> a number of these component names (such as on, not, and, or, etc...) are reserved words in verilog and so are not valid module names. I have prepended "TC_" to the module names for now.
-
-I went ahead and implemented the Buffer1 because you might need a buffer to connect two wires with different names.
+logxen> almost everything now has a size parameter to control its bit width. exceptions include Decoders, FullAdder, latches, splitters and makers. Shl and Shr are also not parameterized yet because the shift width is log2(size) and I haven't figured out what to do about that yet. ><
 
   *1 synchronous devices ... these need clock and reset so I'm skipping them for the moment to complete the easy ones
 
   *2 latches ... latches are considered Bad Things in the fpga and asic world as they difficult to implement and can lead to poor timing results. we are supposed to stick to synchronous clocked memory stuff.
 
   *3 hardware peripherals ... these things are likely not portable and will have to be targetted to specific hardware platforms. as memory mapped devices they will also need clock and reset.
-  
-  *4 I have collapsed things to busses. it is very easy to select wires from busses and build new busses from them in verilog. they work a lot like arrays. so I think these parts probably do not need to be implemented as modules.
 
 ---
 
@@ -69,10 +65,10 @@ I went ahead and implemented the Buffer1 because you might need a buffer to conn
 | Neg8                    | yes            | yes             |
 | Add8                    | yes            | yes             |
 | Mul8                    | yes            | yes             |
-| Splitter8               | (maybe)        | *4              |
-| Maker8                  | (maybe)        | *4              |
-| Splitter64              | (maybe)        | *4              |
-| Maker64                 | (maybe)        | *4              |
+| Splitter8               | (maybe)        | yes             |
+| Maker8                  | (maybe)        | yes             |
+| Splitter64              | (maybe)        | yes             |
+| Maker64                 | (maybe)        | yes             |
 | FullAdder               | yes            | yes             |
 | BitMemory               | yes            | *1              |
 | VirtualBitMemory        |                |                 |
@@ -183,8 +179,8 @@ I went ahead and implemented the Buffer1 because you might need a buffer to conn
 | Shr16                   | yes            | yes             |
 | Mux16                   | yes            | yes             |
 | Switch16                | yes            | yes             |
-| Splitter16              | (maybe)        |                 |
-| Maker16                 | (maybe)        |                 |
+| Splitter16              | (maybe)        | yes             |
+| Maker16                 | (maybe)        | yes             |
 | Register16              | yes            | *1              |
 | VirtualRegister16       |                |                 |
 | Counter16               | yes            | *1              |
@@ -204,8 +200,8 @@ I went ahead and implemented the Buffer1 because you might need a buffer to conn
 | Shr32                   | yes            | yes             |
 | Mux32                   | yes            | yes             |
 | Switch32                | yes            | yes             |
-| Splitter32              | yes            |                 |
-| Maker32                 | yes            |                 |
+| Splitter32              | yes            | yes             |
+| Maker32                 | yes            | yes             |
 | Register32              | yes            | *1              |
 | VirtualRegister32       |                |                 |
 | Counter32               | yes            | *1              |

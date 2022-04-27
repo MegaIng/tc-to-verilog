@@ -1,8 +1,9 @@
-module TC_Not(in, out);
+module TC_Shr (in, shift, out);
     parameter size = 1;
     input [size-1:0] in;
+    input [7:0] shift;
     output [size-1:0] out;
-    
-    assign out = ~in;
+
+    assign out = in >> shift;
 endmodule
 
