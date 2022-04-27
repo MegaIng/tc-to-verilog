@@ -1,5 +1,6 @@
 import os
 import sys
+from collections import defaultdict
 from dataclasses import dataclass
 from functools import cached_property
 from pathlib import Path
@@ -20,7 +21,7 @@ Size: TypeAlias = Literal[1, 8, 16, 32, 64]
 @dataclass
 class TCPin:
     name: str
-    pos: tuple[int, int]
+    rel_pos: tuple[int, int]
     size: Size
 
 
@@ -75,6 +76,13 @@ class TCComponent:
     def permanent_id(self) -> int:
         return self.raw_nim_data["permanent_id"]
 
+    @property
+    def custom_string(self) -> int:
+        return self.raw_nim_data["custom_string"]
+
+
+class NeedsClock(TCComponent):
+    needs_clock: bool = True
 
 @dataclass
 class TCWire:
@@ -117,11 +125,47 @@ class TCSchematic:
 
     @cached_property
     def components(self) -> list[TCComponent]:
-        return [TCComponent(w) for w in self.raw_nim_data["components"]]
+        return [getattr(tc_components, c["kind"])(c) for c in self.raw_nim_data["components"]]
 
     @classmethod
     def open_level(cls, level_name: str, save_name: str):
         return cls(save_monger.parse_state((SCHEMATICS / level_name / save_name / "circuit.data").read_bytes()))
+
+    @cached_property
+    def wire_map(self) -> dict[tuple[int, int], set[tuple[int, int]]]:
+        points = defaultdict(set)
+        for wire in self.wires:
+            s = {wire.start, wire.end, *points[wire.start], *points[wire.end]}
+            for p in s:
+                points[p] = s
+        return points
+
+    @cached_property
+    def pin_map(self) -> dict[tuple[int, int], tuple[TCComponent, TCPin, int]]:
+        pins = {}
+        for com in self.components:
+            for i, pin in enumerate(com.pins):
+                pin: TCPin
+                pos = com.x + pin.rel_pos[0], com.y + pin.rel_pos[1]
+                assert pos not in pins, pos
+                pins[pos] = (com, pin, i)
+        return pins
+
+    @cached_property
+    def named_pins_by_name(self) -> dict[str, TCComponent]:
+        out = {}
+        for com in self.components:
+            if isinstance(com, (tc_components._SimpleInput, tc_components._SimpleOutput)):
+                name = com.custom_string or f"{type(com).__name__}x{com.x % 512:03}y{com.y % 512:03}"
+                out[name] = com
+        return out
+
+    @cached_property
+    def named_pins_by_position(self) -> dict[tuple[int, int], tuple[str, TCComponent]]:
+        out = {}
+        for name, com in self.named_pins_by_name.items():
+            out[com.pos] = name, com
+        return out
 
 
 def get_path():
@@ -152,5 +196,4 @@ BASE_PATH = get_path()
 
 SCHEMATICS = BASE_PATH / "schematics"
 
-# state = save_monger.parse_state((SCHEMATICS / "not_gate" / "Default" / "circuit.data").read_bytes())
-# pprint(state)
+from tc2verilog import tc_components
