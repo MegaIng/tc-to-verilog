@@ -1,6 +1,6 @@
-module TC_Switch(sel, in, out);
+module TC_Switch(en, in, out);
     parameter size = 1;
-    input sel;
+    input en;
     input [size-1:0] in;
     tri0 reg [size-1:0] out;
     
