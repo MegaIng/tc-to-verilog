@@ -1,4 +1,4 @@
-module TC_ByteOr(a, b, out);
+module TC_Or8(a, b, out);
     input [7:0] a;
     input [7:0] b;
     output [7:0] out;

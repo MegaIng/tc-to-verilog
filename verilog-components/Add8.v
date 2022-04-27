@@ -1,4 +1,4 @@
-module TC_ByteAdd (a, b, ci, out, co);
+module TC_Add8 (a, b, ci, out, co);
     input [7:0] a;
     input [7:0] b;
     input ci;

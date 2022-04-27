@@ -1,4 +1,4 @@
-module TC_ByteEqual(a, b, out);
+module TC_Equal8(a, b, out);
     input [7:0] a;
     input [7:0] b;
     output out;

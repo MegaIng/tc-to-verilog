@@ -1,8 +1,8 @@
-module TC_ByteXor(a, b, out);
+module TC_And8(a, b, out);
     input [7:0] a;
     input [7:0] b;
     output [7:0] out;
     
-    assign out = a ^ b;
+    assign out = a & b;
 endmodule
 

@@ -1,4 +1,4 @@
-module TC_ByteMux(sel, a, b, out);
+module TC_Mux8(sel, a, b, out);
     input sel;
     input [7:0] a;
     input [7:0] b;

@@ -1,4 +1,4 @@
-module TC_Byteenwitch(en, in, out);
+module TC_Switch8(en, in, out);
     input en;
     input [7:0] in;
     output reg [7:0] out;
