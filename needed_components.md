@@ -156,92 +156,92 @@ I went ahead and implemented the Buffer1 because you might need a buffer to conn
 | Bidirectional16         |                |                 |
 | Bidirectional32         |                |                 |
 | Bidirectional64         |                |                 |
-| Buffer8                 |                |                 |
-| Buffer16                |                |                 |
-| Buffer32                |                |                 |
-| Buffer64                |                |                 |
+| Buffer8                 | yes            |                 |
+| Buffer16                | yes            |                 |
+| Buffer32                | yes            |                 |
+| Buffer64                | yes            |                 |
 | ProbeWireBit            |                |                 |
 | ProbeWireWord           |                |                 |
-| Switch1                 |                |                 |
+| Switch1                 | yes            |                 |
  | Output1z                |                |                 |
  | Output8z                |                |                 |
  | Output16z               |                |                 |
  | Output32z               |                |                 |
  | Output64z               |                |                 |
  | Constant16              |                |                 |
- | Not16                   |                |                 |
- | Or16                    |                |                 |
- | And16                   |                |                 |
- | Xor16                   |                |                 |
- | Neg16                   |                |                 |
- | Add16                   |                |                 |
- | Mul16                   |                |                 |
- | Equal16                 |                |                 |
- | LessU16                 |                |                 |
- | LessI16                 |                |                 |
- | Shl16                   |                |                 |
- | Shr16                   |                |                 |
- | Mux16                   |                |                 |
- | Switch16                |                |                 |
- | Splitter16              |                |                 |
- | Maker16                 |                |                 |
- | Register16              |                |                 |
+ | Not16                   | yes            |                 |
+ | Or16                    | yes            |                 |
+ | And16                   | yes            |                 |
+ | Xor16                   | yes            |                 |
+ | Neg16                   | yes            |                 |
+ | Add16                   | yes            |                 |
+ | Mul16                   | yes            |                 |
+ | Equal16                 | yes            |                 |
+ | LessU16                 | yes            |                 |
+ | LessI16                 | yes            |                 |
+ | Shl16                   | yes            |                 |
+ | Shr16                   | yes            |                 |
+ | Mux16                   | yes            |                 |
+ | Switch16                | yes            |                 |
+ | Splitter16              | (maybe)        |                 |
+ | Maker16                 | (maybe)        |                 |
+ | Register16              | yes            |                 |
  | VirtualRegister16       |                |                 |
- | Counter16               |                |                 |
+ | Counter16               | yes            |                 |
  | VirtualCounter16        |                |                 |
- | Constant32              |                |                 |
- | Not32                   |                |                 |
- | Or32                    |                |                 |
- | And32                   |                |                 |
- | Xor32                   |                |                 |
- | Neg32                   |                |                 |
- | Add32                   |                |                 |
- | Mul32                   |                |                 |
- | Equal32                 |                |                 |
- | LessU32                 |                |                 |
- | LessI32                 |                |                 |
- | Shl32                   |                |                 |
- | Shr32                   |                |                 |
- | Mux32                   |                |                 |
- | Switch32                |                |                 |
- | Splitter32              |                |                 |
- | Maker32                 |                |                 |
- | Register32              |                |                 |
- | VirtualRegister32       |                |                 |
- | Counter32               |                |                 |
+ | Constant32              | yes            |                 |
+ | Not32                   | yes            |                 |
+ | Or32                    | yes            |                 |
+ | And32                   | yes            |                 |
+ | Xor32                   | yes            |                 |
+ | Neg32                   | yes            |                 |
+ | Add32                   | yes            |                 |
+ | Mul32                   | yes            |                 |
+ | Equal32                 | yes            |                 |
+ | LessU32                 | yes            |                 |
+ | LessI32                 | yes            |                 |
+ | Shl32                   | yes            |                 |
+ | Shr32                   | yes            |                 |
+ | Mux32                   | yes            |                 |
+ | Switch32                | yes            |                 |
+ | Splitter32              | yes            |                 |
+ | Maker32                 | yes            |                 |
+ | Register32              | yes            |                 |
+ | VirtualRegister32       | yes            |                 |
+ | Counter32               | yes            |                 |
  | VirtualCounter32        |                |                 |
  | Output8zLevel           |                |                 |
- | Nand8                   |                |                 |
- | Nor8                    |                |                 |
- | Xnor8                   |                |                 |
- | Nand16                  |                |                 |
- | Nor16                   |                |                 |
- | Xnor16                  |                |                 |
- | Nand32                  |                |                 |
- | Nor32                   |                |                 |
- | Xnor32                  |                |                 |
- | Nand64                  |                |                 |
- | Nor64                   |                |                 |
- | Xnor64                  |                |                 |
- | CheapRam                |                |                 |
+ | Nand8                   | yes            |                 |
+ | Nor8                    | yes            |                 |
+ | Xnor8                   | yes            |                 |
+ | Nand16                  | yes            |                 |
+ | Nor16                   | yes            |                 |
+ | Xnor16                  | yes            |                 |
+ | Nand32                  | yes            |                 |
+ | Nor32                   | yes            |                 |
+ | Xnor32                  | yes            |                 |
+ | Nand64                  | yes            |                 |
+ | Nor64                   | yes            |                 |
+ | Xnor64                  | yes            |                 |
+ | CheapRam                | (later)        |                 |
  | VirtualCheapRam         |                |                 |
- | CheapRamLat             |                |                 |
+ | CheapRamLat             | (later)        |                 |
  | VirtualCheapRamLat      |                |                 |
- | FastRam                 |                |                 |
+ | FastRam                 | (later)        |                 |
  | VirtualFastRam          |                |                 |
- | Rom                     |                |                 |
+ | Rom                     | (later)        |                 |
  | VirtualRom              |                |                 |
- | SolutionRom             |                |                 |
+ | SolutionRom             | ?              |                 |
  | VirtualSolutionRom      |                |                 |
- | DelayLine8              |                |                 |
+ | DelayLine8              | yes            |                 |
  | VirtualDelayLine8       |                |                 |
- | DelayLine16             |                |                 |
+ | DelayLine16             | yes            |                 |
  | VirtualDelayLine16      |                |                 |
- | DelayLine32             |                |                 |
+ | DelayLine32             | yes            |                 |
  | VirtualDelayLine32      |                |                 |
- | DelayLine64             |                |                 |
+ | DelayLine64             | yes            |                 |
  | VirtualDelayLine64      |                |                 |
- | DualLoadRam             |                |                 |
+ | DualLoadRam             | (later)        |                 |
  | VirtualDualLoadRam      |                |                 |
- | Hdd                     |                |                 |
+ | Hdd                     | (later)        |                 |
  | VirtualHdd              |                |                 |
