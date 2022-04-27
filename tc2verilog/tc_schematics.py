@@ -6,96 +6,17 @@ from functools import cached_property
 from pathlib import Path
 from pprint import pprint
 
+from tc2verilog.base_tc_component import TCComponent, TCPin, IOComponent, Size
+
 try:
     import nimporter
 except ImportError:
     print("Couldn't import nimporter, assuming save_monger is available anyway.")
 
+# noinspection PyUnresolvedReferences
 import tc2verilog.save_monger as save_monger
 from dataclasses import dataclass
 from typing import Literal, TypeAlias, ClassVar, cast
-
-Size: TypeAlias = Literal[1, 8, 16, 32, 64]
-
-
-@dataclass
-class TCPin:
-    name: str
-    rel_pos: tuple[int, int]
-    size: Size
-
-
-@dataclass
-class In(TCPin):
-    pass
-
-
-@dataclass
-class InSquare(In):
-    pass
-
-
-@dataclass
-class Out(TCPin):
-    pass
-
-
-@dataclass
-class OutTri(TCPin):
-    pass
-
-
-@dataclass
-class Unbuffered(TCPin):
-    pass
-
-
-@dataclass
-class TCComponent:
-    raw_nim_data: dict
-
-    pins: ClassVar[list[TCPin]]
-
-    @property
-    def pos(self) -> tuple[int, int]:
-        return self.x, self.y
-
-    @property
-    def x(self) -> int:
-        return self.raw_nim_data["position"]["x"]
-
-    @property
-    def y(self) -> int:
-        return self.raw_nim_data["position"]["y"]
-
-    @property
-    def rotation(self) -> int:
-        return self.raw_nim_data["rotation"]
-
-    @property
-    def permanent_id(self) -> int:
-        return self.raw_nim_data["permanent_id"]
-
-    @property
-    def custom_string(self) -> int:
-        return self.raw_nim_data["custom_string"]
-
-    @property
-    def verilog_name(self):
-        return f"TC_{type(self).__name__}"
-
-    @property
-    def positioned_pins(self) -> list[tuple[tuple[int, int], TCPin]]:
-        return [((self.x + p.rel_pos[0], self.y + p.rel_pos[1]), p) for p in self.pins]
-
-
-class NeedsClock(TCComponent):
-    needs_clock: bool = True
-
-
-class IOComponent(TCComponent):
-    size: ClassVar[Size]
-    verilog_type: ClassVar[str]
 
 
 @dataclass
@@ -170,7 +91,10 @@ class TCSchematic:
         out = {}
         for com in self.components:
             if isinstance(com, (tc_components._SimpleInput, tc_components._SimpleOutput)):
-                name = com.custom_string or f"{type(com).__name__}x{com.x % 512:03}y{com.y % 512:03}"
+                if com.custom_string:
+                    name = com.custom_string.partition(":")[-1]
+                else:
+                    name = f"{type(com).__name__}x{com.x % 512:03}y{com.y % 512:03}"
                 out[name] = com
         return out
 

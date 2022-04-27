@@ -2,7 +2,8 @@ from _operator import itemgetter
 from collections import defaultdict
 from dataclasses import dataclass
 
-from tc2verilog.tc_schematics import TCSchematic, TCComponent, TCPin, In, OutTri, Out, IOComponent
+from tc2verilog.base_tc_component import TCComponent, TCPin, In, OutTri, Out, IOComponent
+from tc2verilog.tc_schematics import TCSchematic
 
 
 @dataclass
@@ -42,7 +43,12 @@ def output_verilog(module_name: str, schematic: TCSchematic) -> str:
             for pos, p in component.positioned_pins
         ]
         counter += 1
-        return f"{component.verilog_name} {component.verilog_name}_{counter} ({', '.join(arguments)});"
+        if component.parameters is not None:
+            params = f" # ({component.parameters})"
+        else:
+            params = ""
+        print(component, component.verilog_name)
+        return f"{component.verilog_name}{params} {component.verilog_name}_{counter} ({', '.join(arguments)});"
 
     wires_by_position, wires_by_name = create_wires(schematic)
 
@@ -53,9 +59,10 @@ def output_verilog(module_name: str, schematic: TCSchematic) -> str:
     wire_strings = "\n    ".join(wires)
     ports = (
         ("clock", "input wire"), ("reset", "input wire"),
-        *sorted(((name, pin.verilog_type) for name, pin in schematic.named_io_by_name.items())),
+        *sorted(((name, pin.verilog_size_type) for name, pin in schematic.named_io_by_name.items())),
     )
-    port_string = ',\n    '.join(f'{t} {name}' for name, t in ports)
+    port_string = ', '.join(name for name, t in ports)
+    port_decls = '\n    '.join(f'{t} {name};' for name, t in ports)
 
     sub_modules = [
         build_submodule(component)
@@ -78,6 +85,8 @@ def output_verilog(module_name: str, schematic: TCSchematic) -> str:
 module {module_name}(
     {port_string}
 );
+    {port_decls}
+    
     {wire_strings}
     
     {port_wire_string}
