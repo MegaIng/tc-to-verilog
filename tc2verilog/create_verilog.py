@@ -32,7 +32,7 @@ def create_wires(schematic: TCSchematic) -> tuple[dict[tuple[int, int], Wire], d
     return wires_by_position, wires_by_name
 
 
-def output_verilog(name: str, schematic: TCSchematic) -> str:
+def output_verilog(module_name: str, schematic: TCSchematic) -> str:
     counter = 0
 
     def build_submodule(component: TCComponent):
@@ -75,7 +75,7 @@ def output_verilog(name: str, schematic: TCSchematic) -> str:
     port_wire_string = '\n    '.join(port_wires)
 
     return f"""
-module {name}(
+module {module_name}(
     {port_string}
 );
     {wire_strings}
