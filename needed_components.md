@@ -23,11 +23,11 @@ The names of the ports need be in sync with [``tc2verilog/tc_components.py``](tc
 | VirtualByteCounter     |                |                 |
 | QwordCounter           | yes            |                 |
 | VirtualQwordCounter    |                |                 |
-| Ram                    | yes            |                 |
+| Ram                    | (later)        |                 |
 | VirtualRam             |                |                 |
-| QwordRam               | yes            |                 |
+| QwordRam               | (later)        |                 |
 | VirtualQwordRam        |                |                 |
-| Stack                  | yes            |                 |
+| Stack                  | (later)        |                 |
 | VirtualStack           |                |                 |
 | Register               | yes            |                 |
 | VirtualRegister        |                |                 |
