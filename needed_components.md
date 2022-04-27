@@ -123,21 +123,21 @@ I went ahead and implemented the Buffer1 because you might need a buffer to conn
 | Console                 | (later)        | *3              |
 | Shl8                    | yes            | yes             |
 | Shr8                    | yes            | yes             |
-| Constant64              | yes            |                 |
-| Not64                   | yes            |                 |
-| Or64                    | yes            |                 |
-| And64                   | yes            |                 |
-| Xor64                   | yes            |                 |
-| Neg64                   | yes            |                 |
-| Add64                   | yes            |                 |
-| Mul64                   | yes            |                 |
-| Equal64                 | yes            |                 |
-| LessU64                 | yes            |                 |
-| LessI64                 | yes            |                 |
-| Shl64                   | yes            |                 |
-| Shr64                   | yes            |                 |
-| Mux64                   | yes            |                 |
-| Switch64                | yes            |                 |
+| Constant64              | yes            | yes             |
+| Not64                   | yes            | yes             |
+| Or64                    | yes            | yes             |
+| And64                   | yes            | yes             |
+| Xor64                   | yes            | yes             |
+| Neg64                   | yes            | yes             |
+| Add64                   | yes            | yes             |
+| Mul64                   | yes            | yes             |
+| Equal64                 | yes            | yes             |
+| LessU64                 | yes            | yes             |
+| LessI64                 | yes            | yes             |
+| Shl64                   | yes            | yes             |
+| Shr64                   | yes            | yes             |
+| Mux64                   | yes            | yes             |
+| Switch64                | yes            | yes             |
 | ProbeComponentBit       |                |                 |
 | ProbeComponentWord      |                |                 |
 | AndOrLatch              | yes            | *2              |
@@ -162,86 +162,86 @@ I went ahead and implemented the Buffer1 because you might need a buffer to conn
 | Buffer64                | yes            |                 |
 | ProbeWireBit            |                |                 |
 | ProbeWireWord           |                |                 |
-| Switch1                 | yes            |                 |
- | Output1z                |                |                 |
- | Output8z                |                |                 |
- | Output16z               |                |                 |
- | Output32z               |                |                 |
- | Output64z               |                |                 |
- | Constant16              |                |                 |
- | Not16                   | yes            |                 |
- | Or16                    | yes            |                 |
- | And16                   | yes            |                 |
- | Xor16                   | yes            |                 |
- | Neg16                   | yes            |                 |
- | Add16                   | yes            |                 |
- | Mul16                   | yes            |                 |
- | Equal16                 | yes            |                 |
- | LessU16                 | yes            |                 |
- | LessI16                 | yes            |                 |
- | Shl16                   | yes            |                 |
- | Shr16                   | yes            |                 |
- | Mux16                   | yes            |                 |
- | Switch16                | yes            |                 |
- | Splitter16              | (maybe)        |                 |
- | Maker16                 | (maybe)        |                 |
- | Register16              | yes            |                 |
- | VirtualRegister16       |                |                 |
- | Counter16               | yes            |                 |
- | VirtualCounter16        |                |                 |
- | Constant32              | yes            |                 |
- | Not32                   | yes            |                 |
- | Or32                    | yes            |                 |
- | And32                   | yes            |                 |
- | Xor32                   | yes            |                 |
- | Neg32                   | yes            |                 |
- | Add32                   | yes            |                 |
- | Mul32                   | yes            |                 |
- | Equal32                 | yes            |                 |
- | LessU32                 | yes            |                 |
- | LessI32                 | yes            |                 |
- | Shl32                   | yes            |                 |
- | Shr32                   | yes            |                 |
- | Mux32                   | yes            |                 |
- | Switch32                | yes            |                 |
- | Splitter32              | yes            |                 |
- | Maker32                 | yes            |                 |
- | Register32              | yes            |                 |
- | VirtualRegister32       | yes            |                 |
- | Counter32               | yes            |                 |
- | VirtualCounter32        |                |                 |
- | Output8zLevel           |                |                 |
- | Nand8                   | yes            |                 |
- | Nor8                    | yes            |                 |
- | Xnor8                   | yes            |                 |
- | Nand16                  | yes            |                 |
- | Nor16                   | yes            |                 |
- | Xnor16                  | yes            |                 |
- | Nand32                  | yes            |                 |
- | Nor32                   | yes            |                 |
- | Xnor32                  | yes            |                 |
- | Nand64                  | yes            |                 |
- | Nor64                   | yes            |                 |
- | Xnor64                  | yes            |                 |
- | CheapRam                | (later)        |                 |
- | VirtualCheapRam         |                |                 |
- | CheapRamLat             | (later)        |                 |
- | VirtualCheapRamLat      |                |                 |
- | FastRam                 | (later)        |                 |
- | VirtualFastRam          |                |                 |
- | Rom                     | (later)        |                 |
- | VirtualRom              |                |                 |
- | SolutionRom             | ?              |                 |
- | VirtualSolutionRom      |                |                 |
- | DelayLine8              | yes            |                 |
- | VirtualDelayLine8       |                |                 |
- | DelayLine16             | yes            |                 |
- | VirtualDelayLine16      |                |                 |
- | DelayLine32             | yes            |                 |
- | VirtualDelayLine32      |                |                 |
- | DelayLine64             | yes            |                 |
- | VirtualDelayLine64      |                |                 |
- | DualLoadRam             | (later)        |                 |
- | VirtualDualLoadRam      |                |                 |
- | Hdd                     | (later)        |                 |
- | VirtualHdd              |                |                 |
+| Switch1                 | yes            | yes             |
+| Output1z                |                |                 |
+| Output8z                |                |                 |
+| Output16z               |                |                 |
+| Output32z               |                |                 |
+| Output64z               |                |                 |
+| Constant16              |                |                 |
+| Not16                   | yes            | yes             |
+| Or16                    | yes            | yes             |
+| And16                   | yes            | yes             |
+| Xor16                   | yes            | yes             |
+| Neg16                   | yes            | yes             |
+| Add16                   | yes            | yes             |
+| Mul16                   | yes            | yes             |
+| Equal16                 | yes            | yes             |
+| LessU16                 | yes            | yes             |
+| LessI16                 | yes            | yes             |
+| Shl16                   | yes            | yes             |
+| Shr16                   | yes            | yes             |
+| Mux16                   | yes            | yes             |
+| Switch16                | yes            | yes             |
+| Splitter16              | (maybe)        |                 |
+| Maker16                 | (maybe)        |                 |
+| Register16              | yes            | *1              |
+| VirtualRegister16       |                |                 |
+| Counter16               | yes            | *1              |
+| VirtualCounter16        |                |                 |
+| Constant32              | yes            | yes             |
+| Not32                   | yes            | yes             |
+| Or32                    | yes            | yes             |
+| And32                   | yes            | yes             |
+| Xor32                   | yes            | yes             |
+| Neg32                   | yes            | yes             |
+| Add32                   | yes            | yes             |
+| Mul32                   | yes            | yes             |
+| Equal32                 | yes            | yes             |
+| LessU32                 | yes            | yes             |
+| LessI32                 | yes            | yes             |
+| Shl32                   | yes            | yes             |
+| Shr32                   | yes            | yes             |
+| Mux32                   | yes            | yes             |
+| Switch32                | yes            | yes             |
+| Splitter32              | yes            |                 |
+| Maker32                 | yes            |                 |
+| Register32              | yes            | *1              |
+| VirtualRegister32       |                |                 |
+| Counter32               | yes            | *1              |
+| VirtualCounter32        |                |                 |
+| Output8zLevel           |                |                 |
+| Nand8                   | yes            |                 |
+| Nor8                    | yes            |                 |
+| Xnor8                   | yes            |                 |
+| Nand16                  | yes            |                 |
+| Nor16                   | yes            |                 |
+| Xnor16                  | yes            |                 |
+| Nand32                  | yes            |                 |
+| Nor32                   | yes            |                 |
+| Xnor32                  | yes            |                 |
+| Nand64                  | yes            |                 |
+| Nor64                   | yes            |                 |
+| Xnor64                  | yes            |                 |
+| CheapRam                | (later)        |                 |
+| VirtualCheapRam         |                |                 |
+| CheapRamLat             | (later)        |                 |
+| VirtualCheapRamLat      |                |                 |
+| FastRam                 | (later)        |                 |
+| VirtualFastRam          |                |                 |
+| Rom                     | (later)        |                 |
+| VirtualRom              |                |                 |
+| SolutionRom             | ?              |                 |
+| VirtualSolutionRom      |                |                 |
+| DelayLine8              | yes            | *1              |
+| VirtualDelayLine8       |                |                 |
+| DelayLine16             | yes            | *1              |
+| VirtualDelayLine16      |                |                 |
+| DelayLine32             | yes            | *1              |
+| VirtualDelayLine32      |                |                 |
+| DelayLine64             | yes            | *1              |
+| VirtualDelayLine64      |                |                 |
+| DualLoadRam             | (later)        | *3              |
+| VirtualDualLoadRam      |                |                 |
+| Hdd                     | (later)        | *3              |
+| VirtualHdd              |                |                 |
