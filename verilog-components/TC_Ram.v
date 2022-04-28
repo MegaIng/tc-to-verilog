@@ -1,4 +1,4 @@
-module TC_RAM (clk, rst, load, save, address, in, out);
+module TC_Ram (clk, rst, load, save, address, in, out);
     input clk;
     input rst;
     input load;

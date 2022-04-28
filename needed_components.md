@@ -36,7 +36,7 @@ logxen> almost everything now has a size parameter to control its bit width. exc
 | VirtualCounter8         |                |                 |       |
 | Counter64               | yes            | yes             | yes   |
 | VirtualCounter64        |                |                 |       |
-| Ram                     | (later)        | yes             |       |
+| Ram                     | (later)        | yes             | yes   |
 | VirtualRam              |                |                 |       |
 | DELETED_0               |                |                 |       |
 | DELETED_1               |                |                 |       |
@@ -52,8 +52,8 @@ logxen> almost everything now has a size parameter to control its bit width. exc
 | VirtualRegister64       |                |                 |       |
 | Switch8                 | yes            | yes             | yes   |
 | Mux8                    | yes            | yes             | yes   |
-| Decoder1                | yes            | yes             |       |
-| Decoder3                | yes            | yes             |       |
+| Decoder1                | yes            | yes             | yes   |
+| Decoder3                | yes            | yes             | yes   |
 | Constant8               | yes            | yes             | yes   |
 | Not8                    | yes            | yes             | yes   |
 | Or8                     | yes            | yes             | yes   |
@@ -69,11 +69,11 @@ logxen> almost everything now has a size parameter to control its bit width. exc
 | Maker8                  | (maybe)        | yes             | yes   |
 | Splitter64              | (maybe)        | yes             | yes   |
 | Maker64                 | (maybe)        | yes             | yes   |
-| FullAdder               | yes            | yes             |       |
+| FullAdder               | yes            | yes             | yes   |
 | BitMemory               | yes            |                 |       |
 | VirtualBitMemory        |                |                 |       |
 | SRLatch                 | yes            | yes *2          |       |
-| Decoder2                | yes            | yes             |       |
+| Decoder2                | yes            | yes             | yes   |
 | Clock                   | (later)        | *3              |       |
 | WaveformGenerator       | (later)        | *3              |       |
 | DELETED_4               |                |                 |       |

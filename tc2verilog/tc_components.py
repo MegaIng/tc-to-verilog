@@ -5,6 +5,9 @@ from tc2verilog.base_tc_component import TCComponent as _TCComponent, Out as _Ou
     IOComponent as _IOComponent, generate_sizes as _generate_sizes, size_hole as _size
 
 
+# region BitComponents
+
+
 class Not(_TCComponent):
     pins = [
         _In("in", (-1, 0), 1),
@@ -66,6 +69,55 @@ class Nor(_TCComponent):
         _In("in1", (-1, -1), 1),
 
         _Out("out", (2, 0), 1),
+    ]
+
+
+class Decoder1(_TCComponent):
+    pins = [
+        _In("sel", (-1, 0), 1),
+        _Out("out0", (1, 0), 1),
+        _Out("out1", (1, 1), 1),
+    ]
+
+
+class Decoder2(_TCComponent):
+    pins = [
+        _In("sel0", (-1, -1), 1),
+        _In("sel1", (-1, 0), 1),
+
+        _Out("out0", (1, -1), 1),
+        _Out("out1", (1, 0), 1),
+        _Out("out2", (1, 1), 1),
+        _Out("out3", (1, 2), 1),
+    ]
+
+
+class Decoder3(_TCComponent):
+    pins = [
+        _In("dis", (0, -4), 1),
+        _In("sel0", (-1, -3), 1),
+        _In("sel1", (-1, -2), 1),
+        _In("sel3", (-1, -1), 1),
+
+        _Out("out0", (1, -3), 1),
+        _Out("out1", (1, -2), 1),
+        _Out("out2", (1, -1), 1),
+        _Out("out3", (1, 0), 1),
+        _Out("out4", (1, 1), 1),
+        _Out("out5", (1, 2), 1),
+        _Out("out6", (1, 3), 1),
+        _Out("out7", (1, 4), 1),
+    ]
+
+
+class FullAdder(_TCComponent):
+    pins = [
+        _In("in0", (-1, 0), 1),
+        _In("in1", (-1, 1), 1),
+        _In("ci", (-1, -1), 1),
+
+        _Out("out", (1, 0), 1),
+        _Out("co", (1, 1), 1),
     ]
 
 
@@ -404,6 +456,14 @@ class _Counter(_NeedsClock):
         _Out("out", (_size(1, 2, 2, 3), 0), _size),
     ]
 
+    @property
+    def value(self):
+        return int(self.custom_string)
+
+    @property
+    def parameters(self):
+        return f".count({self.size}'d{self.value})"
+
 
 @_generate_sizes()
 class _Register(_NeedsClock):
@@ -420,6 +480,16 @@ class _DelayLine(_NeedsClock):
     pins = [
         _Out("in", (_size(-1, - 2, -2, - 3), 0), _size),
         _Out("out", (_size(1, 2, 2, 3), 0), _size),
+    ]
+
+
+class Ram(_NeedsClock):
+    pins = [
+        _In("load", (-13, -7), 1),
+        _In("save", (-13, -6), 1),
+        _In("address", (-13, -5), 8),
+        _In("in", (-13, -4), 8),
+        _In("out", (13, -7), 8),
     ]
 
 
