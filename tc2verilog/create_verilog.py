@@ -1,4 +1,3 @@
-from _operator import itemgetter
 from collections import defaultdict
 from dataclasses import dataclass
 
@@ -17,7 +16,8 @@ class Wire:
 def create_wires(schematic: TCSchematic) -> tuple[dict[tuple[int, int], Wire], dict[str, Wire]]:
     groups = defaultdict(list)
     for pos, pin in schematic.pin_map.items():
-        groups[frozenset(schematic.wire_map[pos])].append((pos, pin))
+        if schematic.wire_map[pos]:
+            groups[frozenset(schematic.wire_map[pos])].append((pos, pin))
     wires_by_position = {}
     wires_by_name = {}
     for i, group in enumerate(groups.values()):
@@ -40,6 +40,7 @@ def output_verilog(module_name: str, schematic: TCSchematic) -> str:
         nonlocal counter
         arguments = [
             f'.{p.name}({wires_by_position[pos].wire_name})'
+            if pos in wires_by_position else f".{p.name}({p.size}'d0)"
             for pos, p in component.positioned_pins
         ]
         counter += 1
@@ -47,7 +48,6 @@ def output_verilog(module_name: str, schematic: TCSchematic) -> str:
             params = f" # ({component.parameters})"
         else:
             params = ""
-        print(component, component.verilog_name)
         return f"{component.verilog_name}{params} {component.verilog_name}_{counter} ({', '.join(arguments)});"
 
     wires_by_position, wires_by_name = create_wires(schematic)
@@ -74,6 +74,8 @@ def output_verilog(module_name: str, schematic: TCSchematic) -> str:
     port_wires = []
     for name, pin in schematic.named_io_by_name.items():
         pos, p = pin.positioned_pins[0]
+        if pos not in wires_by_position:
+            continue
         wire = wires_by_position[pos]
         if isinstance(p, Out):
             port_wires.append(f"assign {wire.wire_name} = {name};")
