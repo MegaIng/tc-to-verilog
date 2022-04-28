@@ -48,7 +48,7 @@ def output_verilog(module_name: str, schematic: TCSchematic) -> str:
             params = f" # ({component.parameters})"
         else:
             params = ""
-        return f"{component.verilog_name}{params} {component.verilog_name}_{counter} ({', '.join(arguments)});"
+        return f"TC_{component.verilog_name}{params} {type(component).__name__}_{counter} ({', '.join(arguments)});"
 
     wires_by_position, wires_by_name = create_wires(schematic)
 

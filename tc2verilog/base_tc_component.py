@@ -69,7 +69,7 @@ class TCComponent:
 
     @property
     def verilog_name(self):
-        return f"TC_{type(self).__name__}"
+        return type(self).__name__
 
     parameters = None
 
@@ -115,9 +115,7 @@ def _generate_sized_class(base, size: int):
             for p in base.pins
         ]
 
-        @property
-        def verilog_name(self):
-            return "TC_" + base.__name__.removeprefix('_')
+        verilog_name = base.__name__.removeprefix('_')
 
         @property
         def parameters(self):

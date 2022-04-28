@@ -5,12 +5,6 @@ from tc2verilog.base_tc_component import TCComponent as _TCComponent, Out as _Ou
     IOComponent as _IOComponent, generate_sizes as _generate_sizes, size_hole as _size
 
 
-class On(_TCComponent):
-    pins = [
-        _Out("value", (1, 0), 1),
-    ]
-
-
 class Not(_TCComponent):
     pins = [
         _In("in", (-1, 0), 1),
@@ -76,21 +70,6 @@ class _Buffer(_TCComponent):
 
         _Out("out", (1, 0), _size),
     ]
-
-
-@_generate_sizes()
-class _Constant(_TCComponent):
-    pins = [
-        _Out("out", (1, 0), _size),
-    ]
-
-    @property
-    def value(self):
-        return int(self.custom_string)
-
-    @property
-    def parameters(self):
-        return f".value('d{self.value})"
 
 
 @_generate_sizes()
@@ -237,6 +216,105 @@ class _Xor(_TCComponent):
 # endregion
 
 
+# region Constants
+
+class Off(_TCComponent):
+    pins = [
+        _Out("out", (1, 0), 1),
+    ]
+
+    @property
+    def value(self):
+        return 0
+
+    verilog_name = "Constant"
+
+    @property
+    def parameters(self):
+        return f".size('d1), .value(1'b{self.value})"
+
+
+class On(_TCComponent):
+    pins = [
+        _Out("out", (1, 0), 1),
+    ]
+
+    @property
+    def value(self):
+        return 1
+
+    verilog_name = "Constant"
+
+    @property
+    def parameters(self):
+        return f".size('d1), .value(1'b{self.value})"
+
+
+class Constant8(_TCComponent):
+    pins = [
+        _Out("out", (1, 0), 8),
+    ]
+
+    @property
+    def value(self):
+        return int(self.custom_string) & (2**64-1)
+
+    verilog_name = "Constant"
+
+    @property
+    def parameters(self):
+        return f".size('d8), .value(8'd{self.value})"
+
+
+class Constant16(_TCComponent):
+    pins = [
+        _Out("out", (2, 0), 16),
+    ]
+
+    @property
+    def value(self):
+        return int(self.custom_string) & (2**64-1)
+
+    verilog_name = "Constant"
+
+    @property
+    def parameters(self):
+        return f".size('d16), .value(16'd{self.value})"
+
+
+class Constant32(_TCComponent):
+    pins = [
+        _Out("out", (2, 0), 32),
+    ]
+
+    @property
+    def value(self):
+        return int(self.custom_string) & (2**64-1)
+
+    verilog_name = "Constant"
+
+    @property
+    def parameters(self):
+        return f".size('d32), .value(32'd{self.value})"
+
+
+class Constant64(_TCComponent):
+    pins = [
+        _Out("out", (3, 0), 64),
+    ]
+
+    @property
+    def value(self):
+        return int(self.custom_string) & (2**64-1)
+
+    verilog_name = "Constant"
+
+    @property
+    def parameters(self):
+        return f".size('d64), .value(64'd{self.value})"
+
+# endregion
+
 # region Input Gates
 
 
@@ -267,6 +345,7 @@ class Input32(_SimpleInput):
 class Input64(_SimpleInput):
     size = 64
     pins = [_Out("value", (3, 0), 64)]
+
 
 # endregion
 
