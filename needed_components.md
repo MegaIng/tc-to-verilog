@@ -32,23 +32,23 @@ logxen> almost everything now has a size parameter to control its bit width. exc
 | Nor                     | yes            | yes             |
 | Xor                     | yes            | yes             |
 | Xnor                    | yes            | yes             |
-| Counter8                | yes            | *1              |
+| Counter8                | yes            | yes             |
 | VirtualCounter8         |                |                 |
-| Counter64               | yes            | *1              |
+| Counter64               | yes            | yes             |
 | VirtualCounter64        |                |                 |
-| Ram                     | (later)        | *1              |
+| Ram                     | (later)        | yes             |
 | VirtualRam              |                |                 |
 | DELETED_0               |                |                 |
 | DELETED_1               |                |                 |
-| Stack                   | (later)        | *1              |
+| Stack                   | (later)        | *1            * |
 | VirtualStack            |                |                 |
-| Register8               | yes            | *1              |
+| Register8               | yes            | yes             |
 | VirtualRegister8        |                |                 |
 | Register8Red            |                |                 |
 | VirtualRegister8Red     |                |                 |
 | Register8RedPlus        |                |                 |
 | VirtualRegister8RedPlus |                |                 |
-| Register64              | yes            | *1              |
+| Register64              | yes            | yes             |
 | VirtualRegister64       |                |                 |
 | Switch8                 | yes            | yes             |
 | Mux8                    | yes            | yes             |
@@ -70,7 +70,7 @@ logxen> almost everything now has a size parameter to control its bit width. exc
 | Splitter64              | (maybe)        | yes             |
 | Maker64                 | (maybe)        | yes             |
 | FullAdder               | yes            | yes             |
-| BitMemory               | yes            | *1              |
+| BitMemory               | yes            | yes             |
 | VirtualBitMemory        |                |                 |
 | SRLatch                 | yes            | yes *2          |
 | Decoder2                | yes            | yes             |
@@ -79,15 +79,15 @@ logxen> almost everything now has a size parameter to control its bit width. exc
 | DELETED_4               |                |                 |
 | DELETED_5               |                |                 |
 | Keypad                  |                |                 |
-| FileRom                 |                | *3              |
+| FileRom                 |                | *1            * |
 | Halt                    | (maybe)        | ?               |
 | WireCluster             | (maybe)        | ?               |
-| Screen                  | (later)        | *3              |
-| Program8_1              | (later)        | *1              |
+| Screen                  | (later)        | yes             |
+| Program8_1              | (later)        | yes             |
 | Program8_1Red           |                |                 |
 | DONT_REUSE_0            |                |                 |
 | DONT_REUSE_1            |                |                 |
-| Program8_4              | (later)        | *1              |
+| Program8_4              | (later)        | yes             |
 | LevelGate               |                |                 |
 | Input1                  |                |                 |
 | Input2Pin               |                |                 |
@@ -113,8 +113,8 @@ logxen> almost everything now has a size parameter to control its bit width. exc
 | InputOutput             |                |                 |
 | Custom                  |                |                 |
 | VirtualCustom           |                |                 |
-| ProgramWord             | (later)        | *1              |
-| DelayLine1              | yes            | *1              |
+| ProgramWord             | (later)        | *1            * |
+| DelayLine1              | yes            | yes             |
 | VirtualDelayLine1       |                |                 |
 | Console                 | (later)        | *3              |
 | Shl8                    | yes            | yes             |
@@ -152,10 +152,10 @@ logxen> almost everything now has a size parameter to control its bit width. exc
 | Bidirectional16         |                |                 |
 | Bidirectional32         |                |                 |
 | Bidirectional64         |                |                 |
-| Buffer8                 | yes            |                 |
-| Buffer16                | yes            |                 |
-| Buffer32                | yes            |                 |
-| Buffer64                | yes            |                 |
+| Buffer8                 | yes            | yes             |
+| Buffer16                | yes            | yes             |
+| Buffer32                | yes            | yes             |
+| Buffer64                | yes            | yes             |
 | ProbeWireBit            |                |                 |
 | ProbeWireWord           |                |                 |
 | Switch1                 | yes            | yes             |
@@ -181,9 +181,9 @@ logxen> almost everything now has a size parameter to control its bit width. exc
 | Switch16                | yes            | yes             |
 | Splitter16              | (maybe)        | yes             |
 | Maker16                 | (maybe)        | yes             |
-| Register16              | yes            | *1              |
+| Register16              | yes            | yes             |
 | VirtualRegister16       |                |                 |
-| Counter16               | yes            | *1              |
+| Counter16               | yes            | yes             |
 | VirtualCounter16        |                |                 |
 | Constant32              | yes            | yes             |
 | Not32                   | yes            | yes             |
@@ -202,40 +202,40 @@ logxen> almost everything now has a size parameter to control its bit width. exc
 | Switch32                | yes            | yes             |
 | Splitter32              | yes            | yes             |
 | Maker32                 | yes            | yes             |
-| Register32              | yes            | *1              |
+| Register32              | yes            | yes             |
 | VirtualRegister32       |                |                 |
-| Counter32               | yes            | *1              |
+| Counter32               | yes            | yes             |
 | VirtualCounter32        |                |                 |
 | Output8zLevel           |                |                 |
-| Nand8                   | yes            |                 |
-| Nor8                    | yes            |                 |
-| Xnor8                   | yes            |                 |
-| Nand16                  | yes            |                 |
-| Nor16                   | yes            |                 |
-| Xnor16                  | yes            |                 |
-| Nand32                  | yes            |                 |
-| Nor32                   | yes            |                 |
-| Xnor32                  | yes            |                 |
-| Nand64                  | yes            |                 |
-| Nor64                   | yes            |                 |
-| Xnor64                  | yes            |                 |
-| CheapRam                | (later)        |                 |
+| Nand8                   | yes            | yes             |
+| Nor8                    | yes            | yes             |
+| Xnor8                   | yes            | yes             |
+| Nand16                  | yes            | yes             |
+| Nor16                   | yes            | yes             |
+| Xnor16                  | yes            | yes             |
+| Nand32                  | yes            | yes             |
+| Nor32                   | yes            | yes             |
+| Xnor32                  | yes            | yes             |
+| Nand64                  | yes            | yes             |
+| Nor64                   | yes            | yes             |
+| Xnor64                  | yes            | yes             |
+| CheapRam                | (later)        |               * |
 | VirtualCheapRam         |                |                 |
-| CheapRamLat             | (later)        |                 |
+| CheapRamLat             | (later)        |               * |
 | VirtualCheapRamLat      |                |                 |
-| FastRam                 | (later)        |                 |
+| FastRam                 | (later)        |               * |
 | VirtualFastRam          |                |                 |
-| Rom                     | (later)        |                 |
+| Rom                     | (later)        |               * |
 | VirtualRom              |                |                 |
 | SolutionRom             | ?              |                 |
 | VirtualSolutionRom      |                |                 |
-| DelayLine8              | yes            | *1              |
+| DelayLine8              | yes            | yes             |
 | VirtualDelayLine8       |                |                 |
-| DelayLine16             | yes            | *1              |
+| DelayLine16             | yes            | yes             |
 | VirtualDelayLine16      |                |                 |
-| DelayLine32             | yes            | *1              |
+| DelayLine32             | yes            | yes             |
 | VirtualDelayLine32      |                |                 |
-| DelayLine64             | yes            | *1              |
+| DelayLine64             | yes            | yes             |
 | VirtualDelayLine64      |                |                 |
 | DualLoadRam             | (later)        | *3              |
 | VirtualDualLoadRam      |                |                 |
