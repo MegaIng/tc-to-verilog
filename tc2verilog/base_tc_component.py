@@ -1,6 +1,6 @@
 import sys
 from dataclasses import dataclass
-from typing import ClassVar, TypeAlias, Literal
+from typing import ClassVar, TypeAlias, Literal, TYPE_CHECKING, TypeVar, Callable
 
 Size: TypeAlias = Literal[1, 8, 16, 32, 64]
 
@@ -99,19 +99,35 @@ class IOComponent(TCComponent):
         return f"{self.verilog_type} [{self.size - 1}:0]"
 
 
-class _SizeHole:
-    pass
+if TYPE_CHECKING:
+    T = TypeVar('T')
+
+    size_hole: Size | Callable[[int, ...], int]
+else:
+    # noinspection PyPep8Naming
+    class size_hole:
+        def __init__(self, *values):
+            self.values = values
 
 
-size_hole = _SizeHole()
+def _fill_holes(size, i, obj):
+    if isinstance(obj, size_hole):
+        return obj.values[i]
+    elif obj is size_hole:
+        return size
+    elif isinstance(obj, (tuple, list)):
+        return type(obj)(_fill_holes(size, i, e) for e in obj)
+    else:
+        assert isinstance(obj, (int, str))
+        return obj
 
 
-def _generate_sized_class(base, size: int):
+def _generate_sized_class(base, i, size: int):
     size_param = f".size('d{size})"
 
     class SizedSubclass(base):
         pins = [
-            type(p)(p.name, p.rel_pos, p.size if p.size is not size_hole else size)
+            type(p)(p.name, _fill_holes(size, i, p.rel_pos), _fill_holes(size, i, p.size))
             for p in base.pins
         ]
 
@@ -127,6 +143,7 @@ def _generate_sized_class(base, size: int):
 
     SizedSubclass.__name__ = f"{base.__name__.removeprefix('_')}{size}"
     SizedSubclass.__qualname__ = base.__qualname__.replace(base.__name__, SizedSubclass.__name__)
+    SizedSubclass.size = size
 
     return SizedSubclass
 
@@ -137,8 +154,8 @@ def generate_sizes(*sizes: int):
 
     def wrapper(cls):
         m = sys.modules[cls.__module__]
-        for size in sizes:
-            new_cls = _generate_sized_class(cls, size)
+        for i, size in enumerate(sizes):
+            new_cls = _generate_sized_class(cls, i, size)
             setattr(m, new_cls.__name__, new_cls)
         return cls
 

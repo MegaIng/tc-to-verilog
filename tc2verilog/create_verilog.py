@@ -1,7 +1,7 @@
 from collections import defaultdict
 from dataclasses import dataclass
 
-from tc2verilog.base_tc_component import TCComponent, TCPin, In, OutTri, Out, IOComponent
+from tc2verilog.base_tc_component import TCComponent, TCPin, In, OutTri, Out, IOComponent, NeedsClock
 from tc2verilog.tc_schematics import TCSchematic
 
 
@@ -43,6 +43,8 @@ def output_verilog(module_name: str, schematic: TCSchematic) -> str:
             if pos in wires_by_position else f".{p.name}({p.size}'d0)"
             for pos, p in component.positioned_pins
         ]
+        if isinstance(component, NeedsClock):
+            arguments = ['.clk(clk)', '.rst(rst)'] + arguments
         counter += 1
         if component.parameters is not None:
             params = f" # ({component.parameters})"
@@ -58,7 +60,7 @@ def output_verilog(module_name: str, schematic: TCSchematic) -> str:
     ]
     wire_strings = "\n    ".join(wires)
     ports = (
-        ("clock", "input wire"), ("reset", "input wire"),
+        ("clk", "input wire"), ("rst", "input wire"),
         *sorted(((name, pin.verilog_size_type) for name, pin in schematic.named_io_by_name.items())),
     )
     port_string = ', '.join(name for name, t in ports)

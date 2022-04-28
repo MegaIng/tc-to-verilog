@@ -172,7 +172,6 @@ class _Neg(_TCComponent):
     ]
 
 
-
 @_generate_sizes()
 class _Nor(_TCComponent):
     pins = [
@@ -279,68 +278,20 @@ class On(_TCComponent):
         return f".size('d1), .value(1'b{self.value})"
 
 
-class Constant8(_TCComponent):
+@_generate_sizes()
+class _Constant(_TCComponent):
     pins = [
-        _Out("out", (1, 0), 8),
+        _Out("out", (_size(1, 2, 2, 3), 0), _size),
     ]
 
     @property
     def value(self):
-        return int(self.custom_string) & (2**64-1)
-
-    verilog_name = "Constant"
+        return int(self.custom_string) & (2 ** 64 - 1)
 
     @property
     def parameters(self):
-        return f".size('d8), .value(8'd{self.value})"
+        return f".value({self.size}'d{self.value})"
 
-
-class Constant16(_TCComponent):
-    pins = [
-        _Out("out", (2, 0), 16),
-    ]
-
-    @property
-    def value(self):
-        return int(self.custom_string) & (2**64-1)
-
-    verilog_name = "Constant"
-
-    @property
-    def parameters(self):
-        return f".size('d16), .value(16'd{self.value})"
-
-
-class Constant32(_TCComponent):
-    pins = [
-        _Out("out", (2, 0), 32),
-    ]
-
-    @property
-    def value(self):
-        return int(self.custom_string) & (2**64-1)
-
-    verilog_name = "Constant"
-
-    @property
-    def parameters(self):
-        return f".size('d32), .value(32'd{self.value})"
-
-
-class Constant64(_TCComponent):
-    pins = [
-        _Out("out", (3, 0), 64),
-    ]
-
-    @property
-    def value(self):
-        return int(self.custom_string) & (2**64-1)
-
-    verilog_name = "Constant"
-
-    @property
-    def parameters(self):
-        return f".size('d64), .value(64'd{self.value})"
 
 # endregion
 
@@ -439,7 +390,40 @@ class Maker64(_TCComponent):
     ]
 
 
-# end region
+# endregion
+
+# region Memory
+
+# class BitMemory(_NeedsClock):
+
+@_generate_sizes()
+class _Counter(_NeedsClock):
+    pins = [
+        _In("save", (_size(-1, -2, -2, -3), -1), 1),
+        _Out("in", (_size(-1, - 2, -2, - 3), 0), _size),
+        _Out("out", (_size(1, 2, 2, 3), 0), _size),
+    ]
+
+
+@_generate_sizes()
+class _Register(_NeedsClock):
+    pins = [
+        _Out("load", (_size(-1, - 2, -2, - 3), -1), 1),
+        _In("save", (_size(-1, -2, -2, -3), 0), 1),
+        _Out("in", (_size(-1, - 2, -2, - 3), 1), _size),
+        _Out("out", (_size(1, 2, 2, 3), 0), _size),
+    ]
+
+
+@_generate_sizes()
+class _DelayLine(_NeedsClock):
+    pins = [
+        _Out("in", (_size(-1, - 2, -2, - 3), 0), _size),
+        _Out("out", (_size(1, 2, 2, 3), 0), _size),
+    ]
+
+
+# endregion
 
 # region Input Gates
 
