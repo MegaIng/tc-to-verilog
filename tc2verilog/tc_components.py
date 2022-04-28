@@ -499,12 +499,39 @@ class Ram(_NeedsClock):
 
 
 class _SimpleInput(_IOComponent):
-    verilog_type = "input wire"
+    pass
 
 
 class Input1(_SimpleInput):
     size = 1
     pins = [_Out("value", (1, 0), 1)]
+
+
+class Input2Pin(_SimpleInput):
+    size = 1
+    pins = [
+        _Out("value0", (1, -1), 1),
+        _Out("value1", (1, 1), 1),
+    ]
+
+
+class Input3Pin(_SimpleInput):
+    size = 1
+    pins = [
+        _Out("value0", (1, -2), 1),
+        _Out("value1", (1, -1), 1),
+        _Out("value2", (1, 0), 1),
+    ]
+
+
+class Input4Pin(_SimpleInput):
+    size = 1
+    pins = [
+        _Out("value0", (1, -2), 1),
+        _Out("value1", (1, -1), 1),
+        _Out("value2", (1, 0), 1),
+        _Out("value3", (1, 1), 1),
+    ]
 
 
 class Input8(_SimpleInput):
@@ -533,12 +560,39 @@ class Input64(_SimpleInput):
 
 
 class _SimpleOutput(_IOComponent):
-    verilog_type = "output wire"
+    pass
 
 
 class Output1(_SimpleOutput):
     size = 1
-    pins = [_In("value wire", (-1, 0), 1)]
+    pins = [_In("value", (-1, 0), 1)]
+
+
+class Output2Pin(_SimpleOutput):
+    size = 1
+    pins = [
+        _In("value0", (-1, -1), 1),
+        _In("value1", (-1, 0), 1)
+    ]
+
+
+class Output3Pin(_SimpleOutput):
+    size = 1
+    pins = [
+        _In("value0", (-1, -1), 1),
+        _In("value1", (-1, 0), 1),
+        _In("value2", (-1, 1), 1)
+    ]
+
+
+class Output4Pin(_SimpleOutput):
+    size = 1
+    pins = [
+        _In("value0", (-1, -2), 1),
+        _In("value1", (-1, -1), 1),
+        _In("value2", (-1, 0), 1),
+        _In("value3", (-1, 1), 1),
+    ]
 
 
 class Output1Sum(Output1):

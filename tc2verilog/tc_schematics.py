@@ -85,10 +85,10 @@ class TCSchematic:
         return pins
 
     @cached_property
-    def named_io_by_name(self) -> dict[str, IOComponent]:
+    def named_io_com_by_name(self) -> dict[str, IOComponent]:
         out = {}
         for com in self.components:
-            if isinstance(com, (tc_components._SimpleInput, tc_components._SimpleOutput)):
+            if isinstance(com, (IOComponent)):
                 if com.custom_string:
                     name = com.custom_string.partition(":")[-1]
                 else:
@@ -97,9 +97,18 @@ class TCSchematic:
         return out
 
     @cached_property
-    def named_pins_by_position(self) -> dict[tuple[int, int], tuple[str, TCComponent]]:
+    def named_io_pin_by_name(self) -> dict[str, tuple[IOComponent, TCPin, tuple[int, int]]]:
         out = {}
-        for name, com in self.named_io_by_name.items():
+        for base_name, com in self.named_io_com_by_name.items():
+            for pos, pin in com.positioned_pins:
+                name = f"{base_name}_{pin.name}"
+                out[name] = com, pin, pos
+        return out
+
+    @cached_property
+    def named_io_com_by_position(self) -> dict[tuple[int, int], tuple[str, TCComponent]]:
+        out = {}
+        for name, com in self.named_io_com_by_name.items():
             out[com.pos] = name, com
         return out
 

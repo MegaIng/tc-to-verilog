@@ -90,9 +90,9 @@ logxen> almost everything now has a size parameter to control its bit width. exc
 | Program8_4              | (later)        | yes             |       |
 | LevelGate               |                |                 |       |
 | Input1                  |                |                 | yes   |
-| Input2Pin               |                |                 |       |
-| Input3Pin               |                |                 |       |
-| Input4Pin               |                |                 |       |
+| Input2Pin               |                |                 | yes   |
+| Input3Pin               |                |                 | yes   |
+| Input4Pin               |                |                 | yes   |
 | InputConditions         |                |                 |       |
 | Input8                  |                |                 | yes   |
 | Input64                 |                |                 | yes   |
@@ -103,9 +103,9 @@ logxen> almost everything now has a size parameter to control its bit width. exc
 | Output1Car              |                |                 | yes   |
 | Output1Aval             |                |                 |       |
 | Output1Bval             |                |                 |       |
-| Output2Pin              |                |                 |       |
-| Output3Pin              |                |                 |       |
-| Output4Pin              |                |                 |       |
+| Output2Pin              |                |                 | yes   |
+| Output3Pin              |                |                 | yes   |
+| Output4Pin              |                |                 | yes   |
 | Output8                 |                |                 | yes   |
 | Output64                |                |                 | yes   |
 | Output1_1B              |                |                 |       |

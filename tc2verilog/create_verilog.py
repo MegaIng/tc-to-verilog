@@ -59,10 +59,21 @@ def output_verilog(module_name: str, schematic: TCSchematic) -> str:
         for wire in wires_by_name.values()
     ]
     wire_strings = "\n    ".join(wires)
-    ports = (
-        ("clk", "input wire"), ("rst", "input wire"),
-        *sorted(((name, pin.verilog_size_type) for name, pin in schematic.named_io_by_name.items())),
-    )
+    ports = [("clk", "input wire"), ("rst", "input wire")]
+    port_wires = []
+    for name, (com, pin, pos) in schematic.named_io_pin_by_name.items():
+        if pos not in wires_by_position:
+            continue
+        wire = wires_by_position[pos]
+        if isinstance(pin, Out):
+            ports.append((name, f"input wire [{pin.size-1}:0]"))
+            port_wires.append(f"assign {wire.wire_name} = {name};")
+        else:
+            ports.append((name, f"output wire [{pin.size-1}:0]"))
+            port_wires.append(f"assign {name} = {wire.wire_name};")
+
+    port_wire_string = '\n    '.join(port_wires)
+
     port_string = ', '.join(name for name, t in ports)
     port_decls = '\n    '.join(f'{t} {name};' for name, t in ports)
 
@@ -72,18 +83,6 @@ def output_verilog(module_name: str, schematic: TCSchematic) -> str:
         if not isinstance(component, IOComponent)
     ]
     sub_modules_strings = '\n    '.join(sub_modules)
-
-    port_wires = []
-    for name, pin in schematic.named_io_by_name.items():
-        pos, p = pin.positioned_pins[0]
-        if pos not in wires_by_position:
-            continue
-        wire = wires_by_position[pos]
-        if isinstance(p, Out):
-            port_wires.append(f"assign {wire.wire_name} = {name};")
-        else:
-            port_wires.append(f"assign {name} = {wire.wire_name};")
-    port_wire_string = '\n    '.join(port_wires)
 
     return f"""
 module {module_name}(

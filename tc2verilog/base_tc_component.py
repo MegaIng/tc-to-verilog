@@ -92,11 +92,6 @@ class NeedsClock(TCComponent):
 
 class IOComponent(TCComponent):
     size: ClassVar[Size]
-    verilog_type: ClassVar[str]
-
-    @property
-    def verilog_size_type(self):
-        return f"{self.verilog_type} [{self.size - 1}:0]"
 
 
 if TYPE_CHECKING:
