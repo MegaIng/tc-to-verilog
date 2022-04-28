@@ -31,10 +31,30 @@ class And(_TCComponent):
     ]
 
 
+class And3(_TCComponent):
+    pins = [
+        _In("in0", (-1, 1), 1),
+        _In("in1", (-1, 0), 1),
+        _In("in2", (-1, -1), 1),
+
+        _Out("out", (2, 0), 1),
+    ]
+
+
 class Or(_TCComponent):
     pins = [
         _In("in0", (-1, 1), 1),
         _In("in1", (-1, -1), 1),
+
+        _Out("out", (2, 0), 1),
+    ]
+
+
+class Or3(_TCComponent):
+    pins = [
+        _In("in0", (-1, 1), 1),
+        _In("in1", (-1, 0), 1),
+        _In("in2", (-1, -1), 1),
 
         _Out("out", (2, 0), 1),
     ]
@@ -144,6 +164,16 @@ class _Not(_TCComponent):
 
 
 @_generate_sizes()
+class _Neg(_TCComponent):
+    pins = [
+        _In("in", (-1, 0), _size),
+
+        _Out("out", (1, 0), _size),
+    ]
+
+
+
+@_generate_sizes()
 class _Nor(_TCComponent):
     pins = [
         _In("in0", (-1, -1), _size),
@@ -214,7 +244,6 @@ class _Xor(_TCComponent):
 
 
 # endregion
-
 
 # region Constants
 
@@ -314,6 +343,103 @@ class Constant64(_TCComponent):
         return f".size('d64), .value(64'd{self.value})"
 
 # endregion
+
+# region Splitters & Makers
+
+
+class Splitter8(_TCComponent):
+    pins = [
+        _In("in", (-1, 0), 8),
+        _Out("out0", (1, -3), 1),
+        _Out("out1", (1, -2), 1),
+        _Out("out2", (1, -1), 1),
+        _Out("out3", (1, 0), 1),
+        _Out("out4", (1, 1), 1),
+        _Out("out5", (1, 2), 1),
+        _Out("out6", (1, 3), 1),
+        _Out("out7", (1, 4), 1),
+    ]
+
+
+class Maker8(_TCComponent):
+    pins = [
+        _In("in0", (-1, -3), 1),
+        _In("in1", (-1, -2), 1),
+        _In("in2", (-1, -1), 1),
+        _In("in3", (-1, 0), 1),
+        _In("in4", (-1, 1), 1),
+        _In("in5", (-1, 2), 1),
+        _In("in6", (-1, 3), 1),
+        _In("in7", (-1, 4), 1),
+        _Out("out", (1, 0), 8),
+    ]
+
+
+class Splitter16(_TCComponent):
+    pins = [
+        _In("in", (-1, 0), 16),
+        _Out("out0", (1, -1), 8),
+        _Out("out1", (1, 0), 8),
+    ]
+
+
+class Maker16(_TCComponent):
+    pins = [
+        _In("in0", (-1, -1), 8),
+        _In("in1", (-1, 0), 8),
+        _Out("out", (1, 0), 16),
+    ]
+
+
+class Splitter32(_TCComponent):
+    pins = [
+        _In("in", (-1, 0), 32),
+        _Out("out0", (1, -1), 8),
+        _Out("out1", (1, 0), 8),
+        _Out("out2", (1, 1), 8),
+        _Out("out3", (1, 2), 8),
+    ]
+
+
+class Maker32(_TCComponent):
+    pins = [
+        _In("in0", (-1, -1), 8),
+        _In("in1", (-1, 0), 8),
+        _In("in2", (-1, 1), 8),
+        _In("in3", (-1, 2), 8),
+        _Out("out", (1, 0), 32),
+    ]
+
+
+class Splitter64(_TCComponent):
+    pins = [
+        _In("in", (-1, 0), 64),
+        _Out("out0", (1, -3), 8),
+        _Out("out1", (1, -2), 8),
+        _Out("out2", (1, -1), 8),
+        _Out("out3", (1, 0), 8),
+        _Out("out4", (1, 1), 8),
+        _Out("out5", (1, 2), 8),
+        _Out("out6", (1, 3), 8),
+        _Out("out7", (1, 4), 8),
+    ]
+
+
+class Maker64(_TCComponent):
+    pins = [
+        _In("in0", (-1, -3), 8),
+        _In("in1", (-1, -2), 8),
+        _In("in2", (-1, -1), 8),
+        _In("in3", (-1, 0), 8),
+        _In("in4", (-1, 1), 8),
+        _In("in5", (-1, 2), 8),
+        _In("in6", (-1, 3), 8),
+        _In("in7", (-1, 4), 8),
+        _Out("out", (1, 0), 64),
+    ]
+
+
+# end region
 
 # region Input Gates
 
