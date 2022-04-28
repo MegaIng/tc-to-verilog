@@ -79,9 +79,7 @@ class TCSchematic:
     def pin_map(self) -> dict[tuple[int, int], tuple[TCComponent, TCPin, int]]:
         pins = {}
         for com in self.components:
-            for i, pin in enumerate(com.pins):
-                pin: TCPin
-                pos = com.x + pin.rel_pos[0], com.y + pin.rel_pos[1]
+            for i, (pos, pin) in enumerate(com.positioned_pins):
                 assert pos not in pins, pos
                 pins[pos] = (com, pin, i)
         return pins

@@ -75,7 +75,15 @@ class TCComponent:
 
     @property
     def positioned_pins(self) -> list[tuple[tuple[int, int], TCPin]]:
-        return [((self.x + p.rel_pos[0], self.y + p.rel_pos[1]), p) for p in self.pins]
+        (fxx, fxy), (fyx, fyy) = {
+            0: ((1, 0), (0, 1)),
+            1: ((0, -1), (1, 0)),
+            2: ((-1, 0), (0, -1)),
+            3: ((0, 1), (-1, 0)),
+        }[self.rotation]
+        return [((self.x + p.rel_pos[0] * fxx + p.rel_pos[1] * fxy,
+                  self.y + p.rel_pos[0] * fyx + p.rel_pos[1] * fyy
+                  ), p) for p in self.pins]
 
 
 class NeedsClock(TCComponent):
