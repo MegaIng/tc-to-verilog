@@ -50,9 +50,15 @@ class TCWire:
         return self.path[-1]
 
 
+IGNORE_COMPONENTS = {
+    "Screen"
+}
+
+
 @dataclass
 class TCSchematic:
     raw_nim_data: dict
+    io_mapping: dict[str, tuple[str, dict[str, str] | None]] | None = None
 
     @cached_property
     def wires(self) -> list[TCWire]:
@@ -60,11 +66,15 @@ class TCSchematic:
 
     @cached_property
     def components(self) -> list[TCComponent]:
-        return [getattr(tc_components, c["kind"])(c) for c in self.raw_nim_data["components"]]
+        return [getattr(tc_components, c["kind"])(c)
+                for c in self.raw_nim_data["components"]
+                if c["kind"] not in IGNORE_COMPONENTS]
 
     @classmethod
-    def open_level(cls, level_name: str, save_name: str):
-        return cls(save_monger.parse_state((SCHEMATICS / level_name / save_name / "circuit.data").read_bytes()))
+    def open_level(cls, level_name: str, save_name: str,
+                   io_mapping: dict[str, tuple[str, dict[str, str] | None]] = None):
+        return cls(save_monger.parse_state((SCHEMATICS / level_name / save_name / "circuit.data").read_bytes()),
+                   io_mapping)
 
     @cached_property
     def wire_map(self) -> dict[tuple[int, int], set[tuple[int, int]]]:
@@ -94,6 +104,13 @@ class TCSchematic:
                 else:
                     name = f"{type(com).__name__}x{com.x % 512:03}y{com.y % 512:03}"
                 out[name] = com
+        if self.io_mapping is not None:
+            assert len(self.io_mapping) == len(out), (list(out), list(self.io_mapping))
+            new_out = {}
+            for (base_name, (exp_io, _)), com in zip(self.io_mapping.items(), out.values()):
+                assert exp_io == type(com).__name__, (exp_io, type(com).__name__)
+                new_out[base_name] = com
+            out = new_out
         return out
 
     @cached_property
@@ -101,7 +118,10 @@ class TCSchematic:
         out = {}
         for base_name, com in self.named_io_com_by_name.items():
             for pos, pin in com.positioned_pins:
-                name = f"{base_name}_{pin.name}"
+                if self.io_mapping is not None and self.io_mapping[base_name][1] is not None:
+                    name = self.io_mapping[base_name][1][pin.name]
+                else:
+                    name = f"{base_name}_{pin.name}"
                 out[name] = com, pin, pos
         return out
 

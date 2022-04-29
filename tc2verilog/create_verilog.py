@@ -63,14 +63,17 @@ def output_verilog(module_name: str, schematic: TCSchematic) -> str:
     port_wires = []
     for name, (com, pin, pos) in schematic.named_io_pin_by_name.items():
         if pos not in wires_by_position:
-            continue
-        wire = wires_by_position[pos]
+            wire = wires_by_position[pos]
+        else:
+            wire = None
         if isinstance(pin, Out):
             ports.append((name, f"input wire [{pin.size-1}:0]"))
-            port_wires.append(f"assign {wire.wire_name} = {name};")
+            if wire:
+                port_wires.append(f"assign {wire.wire_name} = {name};")
         else:
             ports.append((name, f"output wire [{pin.size-1}:0]"))
-            port_wires.append(f"assign {name} = {wire.wire_name};")
+            if wire:
+                port_wires.append(f"assign {name} = {wire.wire_name};")
 
     port_wire_string = '\n    '.join(port_wires)
 

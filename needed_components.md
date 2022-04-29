@@ -82,12 +82,12 @@ logxen> almost everything now has a size parameter to control its bit width. exc
 | FileRom                 |                | *1            * |       |
 | Halt                    | (maybe)        | ?               |       |
 | WireCluster             | (maybe)        | ?               |       |
-| Screen                  | (later)        | yes ?           |       |
-| Program8_1              | (later)        | yes             |       |
+| Screen                  | (later)        |                 |       |
+| Program8_1              | (later)        | yes             | yes   |
 | Program8_1Red           |                |                 |       |
 | DONT_REUSE_0            |                |                 |       |
 | DONT_REUSE_1            |                |                 |       |
-| Program8_4              | (later)        | yes             |       |
+| Program8_4              | (later)        | yes             | yes   |
 | LevelGate               |                |                 |       |
 | Input1                  |                |                 | yes   |
 | Input2Pin               |                |                 | yes   |
@@ -97,7 +97,7 @@ logxen> almost everything now has a size parameter to control its bit width. exc
 | Input8                  |                |                 | yes   |
 | Input64                 |                |                 | yes   |
 | InputCode               |                |                 |       |
-| Input1_1B               |                |                 |       |
+| Input1_1B               |                |                 | yes   |
 | Output1                 |                |                 | yes   |
 | Output1Sum              |                |                 | yes   |
 | Output1Car              |                |                 | yes   |
@@ -108,7 +108,7 @@ logxen> almost everything now has a size parameter to control its bit width. exc
 | Output4Pin              |                |                 | yes   |
 | Output8                 |                |                 | yes   |
 | Output64                |                |                 | yes   |
-| Output1_1B              |                |                 |       |
+| Output1_1B              |                |                 | yes   |
 | OutputCounter           |                |                 |       |
 | InputOutput             |                |                 |       |
 | Custom                  |                |                 |       |

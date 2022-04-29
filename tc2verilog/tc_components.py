@@ -451,8 +451,8 @@ class Maker64(_TCComponent):
 @_generate_sizes()
 class _Counter(_NeedsClock):
     pins = [
-        _In("save", (_size(-1, -2, -2, -3), -1), 1),
-        _Out("in", (_size(-1, - 2, -2, - 3), 0), _size),
+        _InSquare("save", (_size(-1, -2, -2, -3), -1), 1),
+        _InSquare("in", (_size(-1, - 2, -2, - 3), 0), _size),
         _Out("out", (_size(1, 2, 2, 3), 0), _size),
     ]
 
@@ -468,9 +468,9 @@ class _Counter(_NeedsClock):
 @_generate_sizes()
 class _Register(_NeedsClock):
     pins = [
-        _Out("load", (_size(-1, - 2, -2, - 3), -1), 1),
-        _In("save", (_size(-1, -2, -2, -3), 0), 1),
-        _Out("in", (_size(-1, - 2, -2, - 3), 1), _size),
+        _In("load", (_size(-1, - 2, -2, - 3), -1), 1),
+        _InSquare("save", (_size(-1, -2, -2, -3), 0), 1),
+        _InSquare("in", (_size(-1, - 2, -2, - 3), 1), _size),
         _Out("out", (_size(1, 2, 2, 3), 0), _size),
     ]
 
@@ -478,7 +478,7 @@ class _Register(_NeedsClock):
 @_generate_sizes()
 class _DelayLine(_NeedsClock):
     pins = [
-        _Out("in", (_size(-1, - 2, -2, - 3), 0), _size),
+        _InSquare("in", (_size(-1, - 2, -2, - 3), 0), _size),
         _Out("out", (_size(1, 2, 2, 3), 0), _size),
     ]
 
@@ -486,10 +486,29 @@ class _DelayLine(_NeedsClock):
 class Ram(_NeedsClock):
     pins = [
         _In("load", (-13, -7), 1),
-        _In("save", (-13, -6), 1),
+        _InSquare("save", (-13, -6), 1),
         _In("address", (-13, -5), 8),
-        _In("in", (-13, -4), 8),
-        _In("out", (13, -7), 8),
+        _InSquare("in", (-13, -4), 8),
+        _Out("out", (13, -7), 8),
+    ]
+
+
+# noinspection PyPep8Naming
+class Program8_1(_NeedsClock):
+    pins = [
+        _In("address", (-13, -7), 8),
+        _Out("out", (13, -7), 8),
+    ]
+
+
+# noinspection PyPep8Naming
+class Program8_4(_NeedsClock):
+    pins = [
+        _In("address", (-13, -7), 8),
+        _Out("out0", (13, -7), 8),
+        _Out("out1", (13, -6), 8),
+        _Out("out2", (13, -5), 8),
+        _Out("out3", (13, -4), 8),
     ]
 
 
@@ -554,6 +573,14 @@ class Input64(_SimpleInput):
     pins = [_Out("value", (3, 0), 64)]
 
 
+# noinspection PyPep8Naming
+class Input1_1B(_IOComponent):
+    pins = [
+        _In("control", (0, 1), 1),
+        _OutTri("value", (1, 0), 8),
+    ]
+
+
 # endregion
 
 # region Output Gates
@@ -605,21 +632,29 @@ class Output1Car(Output1):
 
 class Output8(_SimpleOutput):
     size = 8
-    pins = [_In("value wire", (-1, 0), 8)]
+    pins = [_In("value", (-1, 0), 8)]
 
 
 class Output16(_SimpleOutput):
     size = 16
-    pins = [_In("value wire", (-2, 0), 16)]
+    pins = [_In("value", (-2, 0), 16)]
 
 
 class Output32(_SimpleOutput):
     size = 32
-    pins = [_In("value wire", (-2, 0), 32)]
+    pins = [_In("value", (-2, 0), 32)]
 
 
 class Output64(_SimpleOutput):
     size = 64
-    pins = [_In("value wire", (-3, 0), 64)]
+    pins = [_In("value", (-3, 0), 64)]
+
+
+# noinspection PyPep8Naming
+class Output1_1B(_IOComponent):
+    pins = [
+        _In("control", (0, 1), 1),
+        _In("value", (-1, 0), 8),
+    ]
 
 # endregion
