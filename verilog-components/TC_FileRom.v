@@ -1,6 +1,7 @@
 module TC_FileRom (clk, rst, en, address, out);
     parameter MEM_BYTES = 65536;
     parameter HEX_FILE = "test_jumps.mem";
+    parameter ARG_SIG = "HEXFILE=%s";
     parameter FILE_BYTES = 755;
     reg [1024*8:0] hexfile;
     integer filebytes;
@@ -19,7 +20,7 @@ module TC_FileRom (clk, rst, en, address, out);
         hexfile = HEX_FILE;
         filebytes = FILE_BYTES;
 
-        if ($value$plusargs("HEXFILE=%s", hexfile)) begin
+        if ($value$plusargs(ARG_SIG, hexfile)) begin
             $display("loading %0s", hexfile);
             $readmemh(hexfile, mem);
         end
