@@ -38,7 +38,7 @@ logxen> almost everything now has a size parameter to control its bit width. exc
 | VirtualRam              |                |                 |       |
 | DELETED_0               |                |                 |       |
 | DELETED_1               |                |                 |       |
-| Stack                   | (later)        |               * |       |
+| Stack                   | (later)        | yes             |       |
 | VirtualStack            |                |                 |       |
 | Register8               | yes            | yes             | yes   |
 | VirtualRegister8        |                |                 |       |
@@ -237,5 +237,5 @@ logxen> almost everything now has a size parameter to control its bit width. exc
 | VirtualDelayLine64      |                |                 |       |
 | DualLoadRam             | (later)        | yes             |       |
 | VirtualDualLoadRam      |                |                 |       |
-| Hdd                     | (later)        |               * |       |
+| Hdd                     | (later)        | yes             |       |
 | VirtualHdd              |                |                 |       |
