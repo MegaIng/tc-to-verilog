@@ -45,6 +45,8 @@ module TC_Program8_1_testbench ();
         address = 16'b0000_0000_0000_0101;
         #20
         address = 16'b0000_0000_0000_0110;
+        #20
+        $finish;
     end
 endmodule
 

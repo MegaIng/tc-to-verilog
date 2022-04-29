@@ -1,14 +1,19 @@
 module TC_Program8_1 (clk, rst, address, out);
-    parameter size = 65536;
-    parameter rom = "test_jumps.mem";
+    parameter MEM_BYTES = 65536;
+    reg [1024*8:0] hexfile;
     input clk;
     input rst;
     input [15:0] address;
     output reg [7:0] out;
 
-    reg [7:0] mem [size:0];
+    reg [7:0] mem [0:MEM_BYTES];
 
-    initial $readmemh(rom, mem);
+    initial begin
+        if ($value$plusargs("HEXFILE=%s", hexfile)) begin
+            $display("loading %0s", hexfile);
+            $readmemh(hexfile, mem);
+        end
+    end
 
     always @ (posedge clk or posedge rst) begin
         if (rst) begin

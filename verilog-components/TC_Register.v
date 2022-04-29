@@ -1,23 +1,23 @@
 module TC_Register (clk, rst, load, save, in, out);
-    parameter size = 1;
+    parameter BIT_WIDTH = 1;
     input clk;
     input rst;
     input load;
     input save;
-    input [size-1:0] in;
-    output tri0 [size-1:0] out;
-    reg [size-1:0] outval;
-    reg [size-1:0] value;
+    input [BIT_WIDTH-1:0] in;
+    output tri0 [BIT_WIDTH-1:0] out;
+    reg [BIT_WIDTH-1:0] outval;
+    reg [BIT_WIDTH-1:0] value;
     
     always @ (posedge clk) begin
         if (load)
             outval <= value;
         else
-            outval <= {size{1'bZ}};
+            outval <= {BIT_WIDTH{1'bZ}};
     end
     always @ (negedge clk or rst) begin
         if (rst)
-            value <= {size{1'b0}};
+            value <= {BIT_WIDTH{1'b0}};
         else if (save)
             value <= in;
     end

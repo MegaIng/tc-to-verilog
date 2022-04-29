@@ -1,7 +1,7 @@
 module TC_On(value);
-    parameter size = 1;
+    parameter BIT_WIDTH = 1;
     output value;
     
-    assign value = {size{1'b1}};
+    assign value = {BIT_WIDTH{1'b1}};
 endmodule
 

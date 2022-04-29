@@ -1,19 +1,19 @@
 `timescale 10ns / 1ns
 
-module TC_Program8_4_testbench ();
+module TC_ProgramWord_testbench ();
     // clock and reset signals
     reg clk;
     reg rst;
 
     // dut (Design Under Test) io
     reg [15:0] address;
-    wire [7:0] out0;
-    wire [7:0] out1;
-    wire [7:0] out2;
-    wire [7:0] out3;
+    wire [15:0] out0;
+    wire [15:0] out1;
+    wire [15:0] out2;
+    wire [15:0] out3;
     
     // dut instantiation
-    TC_Program8_4 dut (.clk(clk), .rst(rst), .address(address), .out0(out0), .out1(out1), .out2(out2), .out3(out3));
+    TC_ProgramWord dut (.clk(clk), .rst(rst), .address(address), .out0(out0), .out1(out1), .out2(out2), .out3(out3));
 
     // generate clock
     initial begin
@@ -31,7 +31,7 @@ module TC_Program8_4_testbench ();
     // run tests
     initial begin
         // monitor io
-        $monitor("time=%3d, address=%16b, out0=%8b, out1=%8b, out2=%8b, out3=%8b\n",
+        $monitor("time=%3d, address=%16b, out0=%16b, out1=%16b, out2=%16b, out3=%16b\n",
                     $time, address, out0, out1, out2, out3);
         
         // generate all input combinations with 200ns delays

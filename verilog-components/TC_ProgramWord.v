@@ -1,5 +1,6 @@
-module TC_Program8_4 (clk, rst, address, out0, out1, out2, out3);
-    parameter MEM_BYTES = 65536;
+module TC_ProgramWord (clk, rst, address, out0, out1, out2, out3);
+    parameter BIT_WIDTH = 16;
+    parameter MEM_WORDS = 65536;
     reg [1024*8:0] hexfile;
     input clk;
     input rst;
@@ -9,7 +10,7 @@ module TC_Program8_4 (clk, rst, address, out0, out1, out2, out3);
     output reg [7:0] out2;
     output reg [7:0] out3;
 
-    reg [7:0] mem [0:MEM_BYTES];
+    reg [BIT_WIDTH:0] mem [0:MEM_WORDS];
 
     initial begin
         if ($value$plusargs("HEXFILE=%s", hexfile)) begin
@@ -20,10 +21,10 @@ module TC_Program8_4 (clk, rst, address, out0, out1, out2, out3);
 
     always @ (posedge clk or posedge rst) begin
         if (rst) begin
-            out0 <= 8'b0000_0000;
-            out1 <= 8'b0000_0000;
-            out2 <= 8'b0000_0000;
-            out3 <= 8'b0000_0000;
+            out0 <= {BIT_WIDTH{1'b0}};
+            out1 <= {BIT_WIDTH{1'b0}};
+            out2 <= {BIT_WIDTH{1'b0}};
+            out3 <= {BIT_WIDTH{1'b0}};
         end else begin
             out0 <= mem[address];
             out1 <= mem[address+1];

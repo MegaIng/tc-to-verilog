@@ -1,19 +1,17 @@
 `timescale 10ns / 1ns
 
-module TC_Program8_4_testbench ();
+module TC_FileRom_testbench ();
     // clock and reset signals
     reg clk;
     reg rst;
 
     // dut (Design Under Test) io
+    reg en;
     reg [15:0] address;
-    wire [7:0] out0;
-    wire [7:0] out1;
-    wire [7:0] out2;
-    wire [7:0] out3;
+    wire [7:0] out;
     
     // dut instantiation
-    TC_Program8_4 dut (.clk(clk), .rst(rst), .address(address), .out0(out0), .out1(out1), .out2(out2), .out3(out3));
+    TC_FileRom dut (.clk(clk), .rst(rst), .en(en), .address(address), .out(out));
 
     // generate clock
     initial begin
@@ -31,12 +29,15 @@ module TC_Program8_4_testbench ();
     // run tests
     initial begin
         // monitor io
-        $monitor("time=%3d, address=%16b, out0=%8b, out1=%8b, out2=%8b, out3=%8b\n",
-                    $time, address, out0, out1, out2, out3);
+        $monitor("time=%3d, address=%16b, out=%8b\n",
+                    $time, address, out);
         
         // generate all input combinations with 200ns delays
+        en = 1'b0;
 		address = 16'b0000_0000_0000_0000;
-        #25
+		#5
+		en = 1'b1;
+        #20
         address = 16'b0000_0000_0000_0001;
         #20
         address = 16'b0000_0000_0000_0010;
@@ -48,8 +49,6 @@ module TC_Program8_4_testbench ();
         address = 16'b0000_0000_0000_0101;
         #20
         address = 16'b0000_0000_0000_0110;
-        #20
-        $finish;
     end
 endmodule
 
