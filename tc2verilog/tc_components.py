@@ -4,6 +4,8 @@ from tc2verilog.base_tc_component import TCComponent as _TCComponent, Out as _Ou
     InSquare as _InSquare, Unbuffered as _Unbuffered, Size as _Size, NeedsClock as _NeedsClock, \
     IOComponent as _IOComponent, generate_sizes as _generate_sizes, size_hole as _size
 
+# noinspection PyUnresolvedReferences
+from tc2verilog.tc_schematics import CustomComponent as Custom
 
 # region BitComponents
 

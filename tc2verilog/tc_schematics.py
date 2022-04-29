@@ -133,6 +133,47 @@ class TCSchematic:
         return out
 
 
+CC_PATHS = {}
+
+
+def _load_cc_meta():
+    base = SCHEMATICS / "component_factory"
+    for circuit_path in base.rglob("circuit.data"):
+        meta = save_monger.parse_state(circuit_path.read_bytes(), True)
+        CC_PATHS[meta["save_version"]] = circuit_path
+
+
+CC_SCHEMATICS = {}
+
+
+def _get_cc_schematic(cc_id):
+    if not CC_PATHS:
+        _load_cc_meta()
+    if cc_id not in CC_SCHEMATICS:
+        assert cc_id in CC_PATHS, cc_id
+        CC_SCHEMATICS[cc_id] = TCSchematic(save_monger.parse_state(CC_PATHS[cc_id].read_bytes()))
+    return CC_SCHEMATICS[cc_id]
+
+
+def _get_cc_blocks(schematic: TCSchematic):
+    out = []
+
+
+class CustomComponent(TCComponent):
+    @cached_property
+    def schematic(self) -> TCSchematic:
+        return _get_cc_schematic(self.custom_id)
+
+    @cached_property
+    def custom_id(self) -> int:
+        return self.raw_nim_data["custom_id"]
+
+    @property
+    def pins(self):
+        
+        return
+
+
 def get_path():
     match sys.platform.lower():
         case "windows" | "win32":
