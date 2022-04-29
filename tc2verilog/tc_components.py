@@ -135,6 +135,18 @@ class _And(_TCComponent):
     ]
 
 
+@_generate_sizes()
+class _Add(_TCComponent):
+    pins = [
+        _In("in0", (-1, 1), _size),
+        _In("in1", (-1, 0), _size),
+        _In("ci", (-1, -1), _size),
+
+        _Out("out", (1, 0), _size),
+        _Out("co", (1, 1), _size),
+    ]
+
+
 @_generate_sizes(1, 8, 16, 32, 64)
 class _Buffer(_TCComponent):
     pins = [
@@ -489,6 +501,15 @@ class Ram(_NeedsClock):
         _InSquare("save", (-13, -6), 1),
         _In("address", (-13, -5), 8),
         _InSquare("in", (-13, -4), 8),
+        _Out("out", (13, -7), 8),
+    ]
+
+
+class Stack(_NeedsClock):
+    pins = [
+        _In("pop", (-13, -7), 1),
+        _InSquare("push", (-13, -6), 1),
+        _InSquare("in", (-13, -5), 8),
         _Out("out", (13, -7), 8),
     ]
 
