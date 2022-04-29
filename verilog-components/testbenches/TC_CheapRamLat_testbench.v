@@ -14,7 +14,7 @@ module TC_CheapRamLat_testbench ();
     wire [15:0] out;
     
     // dut instantiation
-    TC_CheapRamLat dut (.clk(clk), .rst(rst), .load(load), .save(save), .address(address), .in(in), .ready(ready), .out(out));
+    TC_CheapRamLat dut (.clk(clk), .rst(rst), .load(load), .save(save), .address(address), .in0(in), .ready(ready), .out0(out));
 
     // generate clock
     initial begin

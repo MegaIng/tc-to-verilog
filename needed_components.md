@@ -7,11 +7,9 @@ The names of the ports need be in sync with [``tc2verilog/tc_components.py``](tc
 
 logxen> almost everything now has a size parameter to control its bit width. exceptions include Decoders, FullAdder, latches, splitters and makers. Shl and Shr are also not parameterized yet because the shift width is log2(size) and I haven't figured out what to do about that yet. ><
 
-  *1 synchronous devices ... these need clock and reset so I'm skipping them for the moment to complete the easy ones
+  *1 latches ... latches are considered Bad Things in the fpga and asic world as they difficult to implement and can lead to poor timing results. we are supposed to stick to synchronous clocked memory stuff.
 
-  *2 latches ... latches are considered Bad Things in the fpga and asic world as they difficult to implement and can lead to poor timing results. we are supposed to stick to synchronous clocked memory stuff.
-
-  *3 hardware peripherals ... these things are likely not portable and will have to be targetted to specific hardware platforms. as memory mapped devices they will also need clock and reset.
+  *2 hardware peripherals ... these things are likely not portable and will have to be targetted to specific hardware platforms. as memory mapped devices they will also need clock and reset.
 
 ---
 
@@ -19,7 +17,7 @@ logxen> almost everything now has a size parameter to control its bit width. exc
 
 | Component name          | Verilog needed | Verilog created | in py |
 |-------------------------|----------------|-----------------|-------|
-| Error                   |                | ?               |       |
+| Error                   |                |                 |       |
 | Off                     | via Constant   | yes             | yes   |
 | On                      | via Constant   | yes             | yes   |
 | Buffer1                 |                | yes             | yes   |
@@ -40,7 +38,7 @@ logxen> almost everything now has a size parameter to control its bit width. exc
 | VirtualRam              |                |                 |       |
 | DELETED_0               |                |                 |       |
 | DELETED_1               |                |                 |       |
-| Stack                   | (later)        | *1            * |       |
+| Stack                   | (later)        |               * |       |
 | VirtualStack            |                |                 |       |
 | Register8               | yes            | yes             | yes   |
 | VirtualRegister8        |                |                 |       |
@@ -72,17 +70,17 @@ logxen> almost everything now has a size parameter to control its bit width. exc
 | FullAdder               | yes            | yes             | yes   |
 | BitMemory               | yes            |                 |       |
 | VirtualBitMemory        |                |                 |       |
-| SRLatch                 | yes            | yes *2          |       |
+| SRLatch                 | yes            | yes *1          |       |
 | Decoder2                | yes            | yes             | yes   |
-| Clock                   | (later)        | *3              |       |
-| WaveformGenerator       | (later)        | *3              |       |
+| Clock                   | (later)        | yes             |       |
+| WaveformGenerator       | (later)        | *2              |       |
 | DELETED_4               |                |                 |       |
 | DELETED_5               |                |                 |       |
 | Keypad                  |                |                 |       |
-| FileRom                 |                | *1            * |       |
-| Halt                    | (maybe)        | ?               |       |
-| WireCluster             | (maybe)        | ?               |       |
-| Screen                  | (later)        |                 |       |
+| FileRom                 |                | yes             |       |
+| Halt                    | (maybe)        | yes             |       |
+| WireCluster             |                |                 |       |
+| Screen                  |                |                 |       |
 | Program8_1              | (later)        | yes             | yes   |
 | Program8_1Red           |                |                 |       |
 | DONT_REUSE_0            |                |                 |       |
@@ -116,7 +114,7 @@ logxen> almost everything now has a size parameter to control its bit width. exc
 | ProgramWord             | (later)        | yes             |       |
 | DelayLine1              | yes            | yes             | yes   |
 | VirtualDelayLine1       |                |                 |       |
-| Console                 | (later)        | *3              |       |
+| Console                 | (later)        | *2              |       |
 | Shl8                    | yes            | yes             | yes   |
 | Shr8                    | yes            | yes             | yes   |
 | Constant64              | yes            | yes             | yes   |
@@ -136,13 +134,13 @@ logxen> almost everything now has a size parameter to control its bit width. exc
 | Switch64                | yes            | yes             | yes   |
 | ProbeComponentBit       |                |                 |       |
 | ProbeComponentWord      |                |                 |       |
-| AndOrLatch              | yes            | *2              |       |
-| NandNandLatch           | yes            | yes *2          |       |
-| NorNorLatch             | yes            | yes *2          |       |
+| AndOrLatch              | yes            | *1              |       |
+| NandNandLatch           | yes            | yes *1          |       |
+| NorNorLatch             | yes            | yes *1          |       |
 | LessU8                  | yes            | yes             | yes   |
 | LessI8                  | yes            | yes             | yes   |
-| DotMatrixDisplay        | (later)        | *3              |       |
-| SegmentDisplay          | (later)        | *3              |       |
+| DotMatrixDisplay        | (later)        | *2              |       |
+| SegmentDisplay          | (later)        | *2              |       |
 | Input16                 |                |                 | yes   |
 | Input32                 |                |                 | yes   |
 | Output16                |                |                 | yes   |
@@ -219,13 +217,13 @@ logxen> almost everything now has a size parameter to control its bit width. exc
 | Nand64                  | yes            | yes             | yes   |
 | Nor64                   | yes            | yes             | yes   |
 | Xnor64                  | yes            | yes             | yes   |
-| CheapRam                | (later)        | *               |       |
+| CheapRam                | (later)        | -> FastRam      |       |
 | VirtualCheapRam         |                |                 |       |
-| CheapRamLat             | (later)        | *               |       |
+| CheapRamLat             | (later)        | yes             |       |
 | VirtualCheapRamLat      |                |                 |       |
-| FastRam                 | (later)        | *               |       |
+| FastRam                 | (later)        | yes             |       |
 | VirtualFastRam          |                |                 |       |
-| Rom                     | (later)        | *               |       |
+| Rom                     | (later)        | yes             |       |
 | VirtualRom              |                |                 |       |
 | SolutionRom             |                |                 |       |
 | VirtualSolutionRom      |                |                 |       |
@@ -237,7 +235,7 @@ logxen> almost everything now has a size parameter to control its bit width. exc
 | VirtualDelayLine32      |                |                 |       |
 | DelayLine64             | yes            | yes             | yes   |
 | VirtualDelayLine64      |                |                 |       |
-| DualLoadRam             | (later)        | *1              |       |
+| DualLoadRam             | (later)        | yes             |       |
 | VirtualDualLoadRam      |                |                 |       |
-| Hdd                     | (later)        | *1              |       |
+| Hdd                     | (later)        |               * |       |
 | VirtualHdd              |                |                 |       |

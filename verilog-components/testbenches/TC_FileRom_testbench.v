@@ -7,8 +7,8 @@ module TC_FileRom_testbench ();
 
     // dut (Design Under Test) io
     reg en;
-    reg [15:0] address;
-    wire [7:0] out;
+    reg [63:0] address;
+    wire [63:0] out;
     
     // dut instantiation
     TC_FileRom dut (.clk(clk), .rst(rst), .en(en), .address(address), .out(out));
@@ -29,26 +29,28 @@ module TC_FileRom_testbench ();
     // run tests
     initial begin
         // monitor io
-        $monitor("time=%3d, address=%16b, out=%8b\n",
+        $monitor("time=%3d, address=%16h, out=%16h\n",
                     $time, address, out);
         
         // generate all input combinations with 200ns delays
         en = 1'b0;
-		address = 16'b0000_0000_0000_0000;
+		address = 64'hFFFF_FFFF_FFFF_FFFF;
 		#5
 		en = 1'b1;
+		#20
+		address = 64'h0000_0000_0000_0000;
         #20
-        address = 16'b0000_0000_0000_0001;
+        address = 64'h0000_0000_0000_0001;
         #20
-        address = 16'b0000_0000_0000_0010;
+        address = 64'h0000_0000_0000_0002;
         #20
-        address = 16'b0000_0000_0000_0011;
+        address = 64'h0000_0000_0000_0003;
         #20
-        address = 16'b0000_0000_0000_0100;
+        address = 64'h0000_0000_0000_0004;
         #20
-        address = 16'b0000_0000_0000_0101;
+        address = 64'h0000_0000_0000_0005;
         #20
-        address = 16'b0000_0000_0000_0110;
+        address = 64'h0000_0000_0000_0006;
     end
 endmodule
 

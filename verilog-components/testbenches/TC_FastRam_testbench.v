@@ -13,7 +13,7 @@ module TC_FastRam_testbench ();
     wire [15:0] out;
     
     // dut instantiation
-    TC_FastRam dut (.clk(clk), .rst(rst), .load(load), .save(save), .address(address), .in(in), .out(out));
+    TC_FastRam dut (.clk(clk), .rst(rst), .load(load), .save(save), .address(address), .in0(in), .out0(out));
 
     // generate clock
     initial begin
