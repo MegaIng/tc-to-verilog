@@ -1,6 +1,6 @@
 `timescale 10ns / 1ns
 
-module TC_RAM_testbench ();
+module TC_Ram_testbench ();
     // clock and reset signals
     reg clk;
     reg rst;
@@ -13,7 +13,7 @@ module TC_RAM_testbench ();
     wire [7:0] out;
     
     // dut instantiation
-    TC_RAM dut (.clk(clk), .rst(rst), .load(load), .save(save), .address(address), .in(in), .out(out));
+    TC_Ram dut (.clk(clk), .rst(rst), .load(load), .save(save), .address(address), .in(in), .out(out));
 
     // generate clock
     initial begin
