@@ -2,7 +2,7 @@ module TC_FileRom (clk, rst, en, address, out);
     parameter MEM_BYTES = 65536;
     parameter HEX_FILE = "test_jumps.mem";
     parameter ARG_SIG = "HEXFILE=%s";
-    parameter FILE_BYTES = 755;
+    parameter FILE_BYTES = 302;
     reg [1024*8:0] hexfile;
     integer filebytes;
     input clk;
