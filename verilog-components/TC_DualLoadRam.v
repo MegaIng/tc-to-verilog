@@ -1,8 +1,8 @@
 module TC_DualLoadRam (clk, rst, load0, save, address0, in, load1, address1, out0, out1);
     parameter BIT_WIDTH = 16;
     parameter MEM_WORDS = 65536;
-    parameter HEX_FILE = "test_jumps.mem";
-    reg [1024*8:0] hexfile;
+    //parameter HEX_FILE = "test_jumps.mem";
+    //reg [1024*8:0] hexfile;
     input clk;
     input rst;
     input load0;
