@@ -311,7 +311,7 @@ class Off(_TCComponent):
 
     @property
     def parameters(self):
-        return f".size('d1), .value(1'b{self.value})"
+        return f".BIT_WIDTH('d1), .value(1'b{self.value})"
 
 
 class On(_TCComponent):
@@ -327,7 +327,7 @@ class On(_TCComponent):
 
     @property
     def parameters(self):
-        return f".size('d1), .value(1'b{self.value})"
+        return f".BIT_WIDTH('d1), .value(1'b{self.value})"
 
 
 @_generate_sizes()

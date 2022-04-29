@@ -118,7 +118,7 @@ def _fill_holes(size, i, obj):
 
 
 def _generate_sized_class(base, i, size: int):
-    size_param = f".size('d{size})"
+    size_param = f".BIT_WIDTH('d{size})"
 
     class SizedSubclass(base):
         pins = [
