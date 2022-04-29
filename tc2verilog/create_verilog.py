@@ -23,7 +23,7 @@ class VerilogModule:
     schematic: TCSchematic
     counter: int = 0
 
-    _line_sep = "\n     "
+    _line_sep = "\n    "
 
     @cached_property
     def _verilog_wires(self) -> tuple[dict[tuple[int, int], Wire], dict[str, Wire]]:
@@ -79,7 +79,7 @@ class VerilogModule:
         ports = [("clk", "input wire"), ("rst", "input wire")]
         port_wires = []
         for name, (com, pin, pos) in self.schematic.named_io_pin_by_name.items():
-            if pos not in self.wires_by_position:
+            if pos in self.wires_by_position:
                 wire = self.wires_by_position[pos]
             else:
                 wire = None
@@ -97,11 +97,11 @@ class VerilogModule:
             self._line_sep.join(port_wires))
 
     def _build_submodules(self):
-        return [
+        return self._line_sep.join(
             self._build_submodule(component)
             for component in self.schematic.components
             if not isinstance(component, IOComponent)
-        ]
+        )
 
     def full_verilog(self) -> str:
         module_name = self.module_name
@@ -125,4 +125,4 @@ endmodule
 
 
 def output_verilog(module_name: str, schematic: TCSchematic) -> str:
-    return VerilogModule(module_name, schematic)
+    return VerilogModule(module_name, schematic).full_verilog()
