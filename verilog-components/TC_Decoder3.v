@@ -14,9 +14,16 @@ module TC_Decoder3 (dis, sel0, sel1, sel2, out0, out1, out2, out3, out4, out5, o
 
     always @ (dis or {sel2, sel1, sel0})
     begin
-        if(dis)
-            out <= 8'b0000_0000;
-        else begin
+        if(dis) begin
+            out0 <= 1'b0;
+            out1 <= 1'b0;
+            out2 <= 1'b0;
+            out3 <= 1'b0;
+            out4 <= 1'b0;
+            out5 <= 1'b0;
+            out6 <= 1'b0;
+            out7 <= 1'b0;
+        end else begin
             case({sel2, sel1, sel0})
             3'b000 : {out7, out6, out5, out4, out3, out2, out1, out0} =  8'b0000_0001;
             3'b001 : {out7, out6, out5, out4, out3, out2, out1, out0} =  8'b0000_0010;
