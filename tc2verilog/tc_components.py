@@ -53,6 +53,24 @@ class Or(_TCComponent):
     ]
 
 
+class Xor(_TCComponent):
+    pins = [
+        _In("in0", (-1, 1), 1),
+        _In("in1", (-1, -1), 1),
+
+        _Out("out", (2, 0), 1),
+    ]
+
+
+class Xnor(_TCComponent):
+    pins = [
+        _In("in0", (-1, 1), 1),
+        _In("in1", (-1, -1), 1),
+
+        _Out("out", (2, 0), 1),
+    ]
+
+
 class Or3(_TCComponent):
     pins = [
         _In("in0", (-1, 1), 1),
