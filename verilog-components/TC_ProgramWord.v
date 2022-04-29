@@ -5,12 +5,12 @@ module TC_ProgramWord (clk, rst, address, out0, out1, out2, out3);
     input clk;
     input rst;
     input [15:0] address;
-    output reg [7:0] out0;
-    output reg [7:0] out1;
-    output reg [7:0] out2;
-    output reg [7:0] out3;
+    output reg [BIT_WIDTH-1:0] out0;
+    output reg [BIT_WIDTH-1:0] out1;
+    output reg [BIT_WIDTH-1:0] out2;
+    output reg [BIT_WIDTH-1:0] out3;
 
-    reg [BIT_WIDTH:0] mem [0:MEM_WORDS];
+    reg [BIT_WIDTH-1:0] mem [0:MEM_WORDS];
 
     initial begin
         if ($value$plusargs("HEXFILE=%s", hexfile)) begin

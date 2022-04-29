@@ -113,7 +113,7 @@ logxen> almost everything now has a size parameter to control its bit width. exc
 | InputOutput             |                |                 |       |
 | Custom                  |                |                 |       |
 | VirtualCustom           |                |                 |       |
-| ProgramWord             | (later)        | *1            * |       |
+| ProgramWord             | (later)        | yes             |       |
 | DelayLine1              | yes            | yes             | yes   |
 | VirtualDelayLine1       |                |                 |       |
 | Console                 | (later)        | *3              |       |
@@ -237,7 +237,7 @@ logxen> almost everything now has a size parameter to control its bit width. exc
 | VirtualDelayLine32      |                |                 |       |
 | DelayLine64             | yes            | yes             | yes   |
 | VirtualDelayLine64      |                |                 |       |
-| DualLoadRam             | (later)        | *3              |       |
+| DualLoadRam             | (later)        | *1              |       |
 | VirtualDualLoadRam      |                |                 |       |
-| Hdd                     | (later)        | *3              |       |
+| Hdd                     | (later)        | *1              |       |
 | VirtualHdd              |                |                 |       |
