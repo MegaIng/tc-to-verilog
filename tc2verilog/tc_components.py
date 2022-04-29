@@ -140,10 +140,10 @@ class _Add(_TCComponent):
     pins = [
         _In("in0", (-1, 1), _size),
         _In("in1", (-1, 0), _size),
-        _In("ci", (-1, -1), _size),
+        _In("ci", (-1, -1), 1),
 
         _Out("out", (1, 0), _size),
-        _Out("co", (1, 1), _size),
+        _Out("co", (1, 1), 1),
     ]
 
 
