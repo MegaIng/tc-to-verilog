@@ -74,7 +74,13 @@ class TCComponent:
     def verilog_name(self):
         return type(self).__name__
 
-    parameters = None
+    @property
+    def name_id(self):
+        return self.name if self.name is not None else hex(self.permanent_id)[2:]
+
+    @property
+    def parameters(self):
+        return {}
 
     @property
     def positioned_pins(self) -> list[tuple[tuple[int, int], TCPin]]:
@@ -134,7 +140,7 @@ def _fill_holes(size, i, obj):
 
 
 def _generate_sized_class(base, i, size: int):
-    size_param = f".BIT_WIDTH('d{size})"
+    size_param = {'BIT_WIDTH': f"'d{size})"}
 
     class SizedSubclass(base):
         pins = [
@@ -150,7 +156,7 @@ def _generate_sized_class(base, i, size: int):
             if sp is None:
                 return size_param
             else:
-                return f"{sp}, {size_param}"
+                return sp | size_param
 
     SizedSubclass.__name__ = f"{base.__name__.removeprefix('_')}{size}"
     SizedSubclass.__qualname__ = base.__qualname__.replace(base.__name__, SizedSubclass.__name__)

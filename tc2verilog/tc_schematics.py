@@ -154,7 +154,11 @@ class TCSchematic:
         return out
 
 
+ON_WSL = False
+
+
 def get_path():
+    global ON_WSL
     match sys.platform.lower():
         case "windows" | "win32":
             potential_paths = [Path(os.path.expandvars(r"%APPDATA%\Godot\app_userdata\Turing Complete"))]
@@ -171,6 +175,8 @@ def get_path():
             return None
     for base_path in potential_paths:
         if base_path.exists():
+            if "/mnt/c/Users" in str(base_path):
+                ON_WSL = True
             break
     else:
         print("You need Turing Complete installed to use everything here")

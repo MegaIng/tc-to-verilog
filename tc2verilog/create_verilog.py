@@ -5,6 +5,7 @@ from pathlib import Path
 from typing import Iterator
 
 from tc2verilog.base_tc_component import TCComponent, TCPin, In, OutTri, Out, IOComponent, NeedsClock
+from tc2verilog.memory_files import MemoryFile
 from tc2verilog.tc_schematics import TCSchematic
 
 
@@ -84,6 +85,11 @@ class VerilogModule:
             self._line_sep.join(f'{t} {n};' for n, t in ports),
             self._line_sep.join(port_wires))
 
+    def _build_parameters(self, component):
+        if not component.parameters:
+            return ""
+        return f" # ({', '.join(f'.{n}({v})' for n, v in component.parameters.items())})"
+
     def _build_submodule(self, component: TCComponent):
         arguments = [
             f'.{p.name}({self.wires_by_position[pos].wire_name})'
@@ -94,10 +100,7 @@ class VerilogModule:
         if isinstance(component, NeedsClock):
             arguments = ['.clk(clk)', '.rst(rst)'] + arguments
         self.counter += 1
-        if component.parameters is not None:
-            params = f" # ({component.parameters})"
-        else:
-            params = ""
+        params = self._build_parameters(component)
         if component.name is not None:
             return f"TC_{component.verilog_name}{params} {component.name} ({', '.join(arguments)});"
         else:
@@ -130,7 +133,7 @@ module {module_name}(
 endmodule
 """
 
-    def memory_files(self) -> Iterator[tuple[str, bytes]]:
+    def memory_files(self) -> Iterator[MemoryFile]:
         for component in self.schematic.components:
             yield from component.memory_files
 
