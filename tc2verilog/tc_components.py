@@ -368,7 +368,7 @@ class _Constant(_TCComponent):
 
     @property
     def value(self):
-        return int(self.custom_string) & (2 ** 64 - 1)
+        return int(self.custom_string) & (2 ** 64 - 1) if self.custom_string else 0
 
     @property
     def parameters(self):
@@ -539,6 +539,24 @@ class Program8_1(_NeedsClock):
         _Out("out", (13, -7), 8),
     ]
 
+    @property
+    def parameters(self):
+        if self.name is not None:
+            return f'.MEM_BYTES=256, .ARG_SIG="HEXFILE_{self.name}=%s", .HEX_FILE="{self.default_file_name}"'
+        else:
+            return f'.MEM_BYTES=256, .ARG_SIG="HEXFILE_{self.permanent_id:x}=%s", .HEX_FILE="{self.default_file_name}"'
+
+    @property
+    def default_file_name(self):
+        if self.name is not None:
+            return f'{self.name}.s256.m8'
+        else:
+            return f'{self.permanent_id:x}.s256.m8'
+
+    @property
+    def memory_files(self):
+        yield self.default_file_name, b""
+
 
 # noinspection PyPep8Naming
 class Program8_4(_NeedsClock):
@@ -550,6 +568,23 @@ class Program8_4(_NeedsClock):
         _Out("out3", (13, -4), 8),
     ]
 
+    @property
+    def parameters(self):
+        if self.name is not None:
+            return f'.MEMBYTES= 256, .ARG_SIG="HEXFILE_{self.name}=%s", .HEX_FILE="{self.default_file_name}"'
+        else:
+            return f'.MEMBYTES= 256, .ARG_SIG="HEXFILE_{self.permanent_id:x}=%s", .HEX_FILE="{self.default_file_name}"'
+
+    @property
+    def default_file_name(self):
+        if self.name is not None:
+            return f'{self.name}.s256.m8'
+        else:
+            return f'{self.permanent_id:x}.s256.m8'
+
+    @property
+    def memory_files(self):
+        yield self.default_file_name, b""
 
 # endregion
 

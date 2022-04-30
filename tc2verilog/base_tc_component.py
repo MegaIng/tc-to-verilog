@@ -42,6 +42,9 @@ class TCComponent:
     raw_nim_data: dict
 
     pins: ClassVar[list[TCPin]]
+    name: str = None
+
+    memory_files = ()
 
     @property
     def pos(self) -> tuple[int, int]:
@@ -84,6 +87,19 @@ class TCComponent:
         return [((self.x + p.rel_pos[0] * fxx + p.rel_pos[1] * fxy,
                   self.y + p.rel_pos[0] * fyx + p.rel_pos[1] * fyy
                   ), p) for p in self.pins]
+
+    @property
+    def above_topleft(self):
+        (fxx, fxy), (fyx, fyy) = {
+            0: ((1, 0), (0, 1)),
+            1: ((0, -1), (1, 0)),
+            2: ((-1, 0), (0, -1)),
+            3: ((0, 1), (-1, 0)),
+        }[self.rotation]
+        rel_pos = min(p.rel_pos for p in self.pins)
+        rel_pos = rel_pos[0], rel_pos[1] - 1
+        return (self.x + rel_pos[0] * fxx + rel_pos[1] * fxy,
+                self.y + rel_pos[0] * fyx + rel_pos[1] * fyy)
 
 
 class NeedsClock(TCComponent):

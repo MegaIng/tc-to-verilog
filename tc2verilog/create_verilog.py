@@ -1,6 +1,8 @@
 from collections import defaultdict
 from dataclasses import dataclass
 from functools import cached_property
+from pathlib import Path
+from typing import Iterator
 
 from tc2verilog.base_tc_component import TCComponent, TCPin, In, OutTri, Out, IOComponent, NeedsClock
 from tc2verilog.tc_schematics import TCSchematic
@@ -16,6 +18,7 @@ class Wire:
 
 class VerilogBuilder:
     pass
+
 
 @dataclass
 class VerilogModule:
@@ -124,6 +127,17 @@ module {module_name}(
 endmodule
 """
 
+    def memory_files(self) -> Iterator[tuple[str, bytes]]:
+        for component in self.schematic.components:
+            yield from component.memory_files
 
-def output_verilog(module_name: str, schematic: TCSchematic) -> str:
-    return VerilogModule(module_name, schematic).full_verilog()
+
+def output_verilog(out_folder: Path, module_name: str, schematic: TCSchematic):
+    out_folder.mkdir(parents=True, exist_ok=True)
+
+    module = VerilogModule(module_name, schematic)
+
+    (out_folder / f"{module_name}.v").write_text(module.full_verilog())
+
+    for file_name, memory_content in module.memory_files():
+        (out_folder / file_name).write_text(memory_content.hex("\n", -1))
