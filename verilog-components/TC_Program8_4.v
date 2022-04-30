@@ -11,7 +11,6 @@ module TC_Program8_4 (clk, rst, address, out0, out1, out2, out3);
     output reg [7:0] out2;
     output reg [7:0] out3;
 
-    reg [15:0] address_reg;
     reg [7:0] mem [0:MEM_BYTES];
 
     initial begin
@@ -20,7 +19,6 @@ module TC_Program8_4 (clk, rst, address, out0, out1, out2, out3);
             $display("loading %0s", hexfile);
             $readmemh(hexfile, mem);
         end
-        address_reg <= 16'h0000;
     end
 
     always @ (posedge clk or posedge rst) begin
@@ -29,18 +27,11 @@ module TC_Program8_4 (clk, rst, address, out0, out1, out2, out3);
             out1 <= 8'b0000_0000;
             out2 <= 8'b0000_0000;
             out3 <= 8'b0000_0000;
-            address_reg <= 16'h0000;
         end else begin
-            out0 <= mem[address_reg];
-            out1 <= mem[address_reg+1];
-            out2 <= mem[address_reg+2];
-            out3 <= mem[address_reg+3];
-        end
-    end
-    
-    always @ (negedge clk) begin
-        if (!rst) begin
-            address_reg <= address;
+            out0 <= mem[address];
+            out1 <= mem[address+1];
+            out2 <= mem[address+2];
+            out3 <= mem[address+3];
         end
     end
 endmodule

@@ -10,16 +10,18 @@ module TC_Register (clk, rst, load, save, in, out);
     reg [BIT_WIDTH-1:0] value;
     
     always @ (posedge clk) begin
-        if (load)
+        if (load && !rst)
             outval <= value;
         else
             outval <= {BIT_WIDTH{1'bZ}};
     end
     always @ (negedge clk or rst) begin
-        if (rst)
-            value <= {BIT_WIDTH{1'b0}};
-        else if (save)
+        if (save && !rst)
             value <= in;
+    end
+    always @ (posedge rst) begin
+        value <= {BIT_WIDTH{1'b0}};
+        outval <= {BIT_WIDTH{1'bZ}};
     end
     assign out = outval;
 endmodule
