@@ -1,6 +1,6 @@
 module TC_Rom (clk, rst, load, save, address, in, out);
     parameter BIT_WIDTH = 16;
-    parameter MEM_WORDS = 65536;
+    parameter MEM_WORDS = 256;
     parameter HEX_FILE = "test_jumps.mem";
     parameter ARG_SIG = "HEXFILE=%s";
     reg [1024*8:0] hexfile;
@@ -20,6 +20,8 @@ module TC_Rom (clk, rst, load, save, address, in, out);
         if ($value$plusargs(ARG_SIG, hexfile)) begin
             $display("loading %0s", hexfile);
             $readmemh(hexfile, mem);
+        end else begin
+            $display("no file specified");
         end
     end
 

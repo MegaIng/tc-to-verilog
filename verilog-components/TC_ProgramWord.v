@@ -19,6 +19,8 @@ module TC_ProgramWord (clk, rst, address, out0, out1, out2, out3);
         if ($value$plusargs(ARG_SIG, hexfile)) begin
             $display("loading %0s", hexfile);
             $readmemh(hexfile, mem);
+        end else begin
+            $display("no file specified");
         end
     end
 

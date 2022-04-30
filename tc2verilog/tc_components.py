@@ -542,9 +542,9 @@ class Program8_1(_NeedsClock):
     @property
     def parameters(self):
         if self.name is not None:
-            return f'.MEM_BYTES(256), .ARG_SIG("HEXFILE_{self.name}=%s"), .HEX_FILE("{self.default_file_name}")'
+            return f'.MEM_BYTES(256), .ARG_SIG("HEX_FILE_{self.name}=%s"), .HEX_FILE("{self.default_file_name}")'
         else:
-            return f'.MEM_BYTES(256), .ARG_SIG("HEXFILE_{self.permanent_id:x}=%s"), .HEX_FILE("{self.default_file_name}")'
+            return f'.MEM_BYTES(256), .ARG_SIG("HEX_FILE_{self.permanent_id:x}=%s"), .HEX_FILE("{self.default_file_name}")'
 
     @property
     def default_file_name(self):

@@ -1,5 +1,8 @@
 module TC_Hdd (clk, rst, seek, load, save, in, out);
     parameter MEM_WORDS = 256;
+    parameter HEX_FILE = "test_jumps.mem";
+    parameter ARG_SIG = "HEXFILE=%s";
+    reg [1024*8:0] hexfile;
     input clk;
     input rst;
     input [63:0] seek;
@@ -12,6 +15,16 @@ module TC_Hdd (clk, rst, seek, load, save, in, out);
     reg [63:0] outval;
     reg [63:0] mp;
     
+    initial begin
+        hexfile <= HEX_FILE;
+        if ($value$plusargs(ARG_SIG, hexfile)) begin
+            $display("loading %0s", hexfile);
+            $readmemh(hexfile, mem);
+        end else begin
+            $display("no file specified");
+        end
+    end
+
     always @ (posedge clk or rst) begin
         if (rst) begin
             mp = {64{1'bZ}};

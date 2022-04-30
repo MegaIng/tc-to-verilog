@@ -23,6 +23,8 @@ module TC_FileRom (clk, rst, en, address, out);
         if ($value$plusargs(ARG_SIG, hexfile)) begin
             $display("loading %0s", hexfile);
             $readmemh(hexfile, mem);
+        end else begin
+            $display("no file specified");
         end
 
         //fid = $fopen(hexfile, "rb");
