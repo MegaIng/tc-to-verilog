@@ -1,5 +1,5 @@
 module TC_Program8_1 (clk, rst, address, out);
-    parameter MEM_BYTES = 65536;
+    parameter MEM_BYTES = 256;
     parameter HEX_FILE = "test_jumps.mem";
     parameter ARG_SIG = "HEXFILE=%s";
     reg [1024*8:0] hexfile;
@@ -9,6 +9,7 @@ module TC_Program8_1 (clk, rst, address, out);
     output reg [7:0] out;
 
     reg [7:0] mem [0:MEM_BYTES];
+    reg [15:0] address_reg;
 
     initial begin
         hexfile <= HEX_FILE;
@@ -16,13 +17,21 @@ module TC_Program8_1 (clk, rst, address, out);
             $display("loading %0s", hexfile);
             $readmemh(hexfile, mem);
         end
+        address_reg <= 16'h0000;
     end
 
     always @ (posedge clk or posedge rst) begin
         if (rst) begin
             out <= 8'b0000_0000;
+            address_reg <= 16'h0000;
         end else begin
-            out <= mem[address];
+            out <= mem[address_reg];
+        end
+    end
+    
+    always @ (negedge clk) begin
+        if (!rst) begin
+            address_reg <= address;
         end
     end
 endmodule
