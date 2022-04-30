@@ -115,7 +115,7 @@ class Decoder3(_TCComponent):
         _In("dis", (0, -4), 1),
         _In("sel0", (-1, -3), 1),
         _In("sel1", (-1, -2), 1),
-        _In("sel3", (-1, -1), 1),
+        _In("sel2", (-1, -1), 1),
 
         _Out("out0", (1, -3), 1),
         _Out("out1", (1, -2), 1),

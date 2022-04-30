@@ -53,21 +53,6 @@ class VerilogModule:
     def wires_by_name(self) -> dict[str, Wire]:
         return self._verilog_wires[1]
 
-    def _build_submodule(self, component: TCComponent):
-        arguments = [
-            f'.{p.name}({self.wires_by_position[pos].wire_name})'
-            if pos in self.wires_by_position else f".{p.name}({p.size}'d0)"
-            for pos, p in component.positioned_pins
-        ]
-        if isinstance(component, NeedsClock):
-            arguments = ['.clk(clk)', '.rst(rst)'] + arguments
-        self.counter += 1
-        if component.parameters is not None:
-            params = f" # ({component.parameters})"
-        else:
-            params = ""
-        return f"TC_{component.verilog_name}{params} {type(component).__name__}_{self.counter} ({', '.join(arguments)});"
-
     def _build_wires(self):
         wires = [
             f"wire [{wire.wire_size - 1}:0] {wire.wire_name};"
@@ -95,6 +80,22 @@ class VerilogModule:
             ", ".join(n for n, _ in ports),
             self._line_sep.join(f'{t} {n};' for n, t in ports),
             self._line_sep.join(port_wires))
+
+    def _build_submodule(self, component: TCComponent):
+        arguments = [
+            f'.{p.name}({self.wires_by_position[pos].wire_name})'
+            if t else f".{p.name}({p.size}'d0)"
+            for pos, p in component.positioned_pins
+            if (t := (pos in self.wires_by_position)) or isinstance(p, In)
+        ]
+        if isinstance(component, NeedsClock):
+            arguments = ['.clk(clk)', '.rst(rst)'] + arguments
+        self.counter += 1
+        if component.parameters is not None:
+            params = f" # ({component.parameters})"
+        else:
+            params = ""
+        return f"TC_{component.verilog_name}{params} {type(component).__name__}_{self.counter} ({', '.join(arguments)});"
 
     def _build_submodules(self):
         return self._line_sep.join(
