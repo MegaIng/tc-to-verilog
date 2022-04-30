@@ -5,7 +5,7 @@ module TC_Program8_4 (clk, rst, address, out0, out1, out2, out3);
     reg [256*8:0] hex_file;
     input clk;
     input rst;
-    input [15:0] address;
+    input [7:0] address;
     output reg [7:0] out0;
     output reg [7:0] out1;
     output reg [7:0] out2;
