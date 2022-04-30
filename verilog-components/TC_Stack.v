@@ -12,11 +12,11 @@ module TC_Stack (clk, rst, pop, push, in, out);
 
     integer i;
     
-    always @ (posedge clk or rst) begin
+    always @ (posedge clk or posedge rst) begin
         if (rst) begin
-            sp = {8{1'b0}};
+            sp <= {8{1'b0}};
             for (i=0; i<256; i=i+1) begin
-                mem[i] = {8{1'b0}};
+                mem[i] <= {8{1'b0}};
             end
             outval = 8'bZZZZ_ZZZZ;
         end else if (pop) begin

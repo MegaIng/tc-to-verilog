@@ -12,7 +12,7 @@ module TC_Decoder3 (dis, sel0, sel1, sel2, out0, out1, out2, out3, out4, out5, o
     output reg out6;
     output reg out7;
 
-    always @ (dis or {sel2, sel1, sel0})
+    always @ (dis or sel2 or sel1 or sel0)
     begin
         case({dis, sel2, sel1, sel0})
         4'b0000 : {out7, out6, out5, out4, out3, out2, out1, out0} = 8'b0000_0001;

@@ -20,12 +20,12 @@ module TC_Register (clk, rst, load, save, in, out);
         else
             outval <= {BIT_WIDTH{1'bZ}};
     end
-    always @ (negedge clk or rst) begin
+    always @ (negedge clk or posedge rst) begin
         if (save && !rst)
             value <= in;
+        else if (rst)
+		      value <= {BIT_WIDTH{1'b0}};
     end
-    always @ (posedge rst) begin
-        value <= {BIT_WIDTH{1'b0}};
-    end
+
     assign out = outval;
 endmodule

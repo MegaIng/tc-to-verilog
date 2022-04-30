@@ -2,7 +2,7 @@ module TC_Program8_4 (clk, rst, address, out0, out1, out2, out3);
     parameter MEM_BYTES = 256;
     parameter HEX_FILE = "test_jumps.mem";
     parameter ARG_SIG = "HEX_FILE=%s";
-    reg [1024*8:0] hexfile;
+    reg [256*8:0] hex_file;
     input clk;
     input rst;
     input [15:0] address;
@@ -14,10 +14,10 @@ module TC_Program8_4 (clk, rst, address, out0, out1, out2, out3);
     reg [7:0] mem [0:MEM_BYTES];
 
     initial begin
-        hexfile <= HEX_FILE;
-        if ($value$plusargs(ARG_SIG, hexfile)) begin
-            $display("loading %0s", hexfile);
-            $readmemh(hexfile, mem);
+        hex_file = HEX_FILE;
+        if ($value$plusargs(ARG_SIG, hex_file)) begin
+            $display("loading %0s", hex_file);
+            $readmemh(hex_file, mem);
         end else begin
             $display("no file specified");
         end
