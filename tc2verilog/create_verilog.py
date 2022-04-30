@@ -98,7 +98,10 @@ class VerilogModule:
             params = f" # ({component.parameters})"
         else:
             params = ""
-        return f"TC_{component.verilog_name}{params} {type(component).__name__}_{self.counter} ({', '.join(arguments)});"
+        if component.name is not None:
+            return f"TC_{component.verilog_name}{params} {component.name} ({', '.join(arguments)});"
+        else:
+            return f"TC_{component.verilog_name}{params} {type(component).__name__}_{self.counter} ({', '.join(arguments)});"
 
     def _build_submodules(self):
         return self._line_sep.join(
