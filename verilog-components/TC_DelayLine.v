@@ -3,7 +3,7 @@ module TC_DelayLine (clk, rst, in, out);
     input clk;
     input rst;
     input [BIT_WIDTH-1:0] in;
-    output tri0 [BIT_WIDTH-1:0] out;
+    output [BIT_WIDTH-1:0] out;
 
     reg [BIT_WIDTH-1:0] outval;
     reg [BIT_WIDTH-1:0] value;

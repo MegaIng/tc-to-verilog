@@ -9,7 +9,7 @@ module TC_Hdd (clk, rst, seek, load, save, in, out);
     input load;
     input save;
     input [63:0] in;
-    output tri0 [63:0] out;
+    output [63:0] out;
     
     reg [63:0] mem [0:MEM_WORDS-1];
     reg [63:0] outval;

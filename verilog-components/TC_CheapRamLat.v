@@ -10,11 +10,11 @@ module TC_CheapRamLat (clk, rst, load, save, address, in0, in1, in2, in3, ready,
     input [BIT_WIDTH-1:0] in1;
     input [BIT_WIDTH-1:0] in2;
     input [BIT_WIDTH-1:0] in3;
-    output tri0 ready;
-    output tri0 [BIT_WIDTH-1:0] out0;
-    output tri0 [BIT_WIDTH-1:0] out1;
-    output tri0 [BIT_WIDTH-1:0] out2;
-    output tri0 [BIT_WIDTH-1:0] out3;
+    output ready;
+    output [BIT_WIDTH-1:0] out0;
+    output [BIT_WIDTH-1:0] out1;
+    output [BIT_WIDTH-1:0] out2;
+    output [BIT_WIDTH-1:0] out3;
     reg readywait;
     reg readyval;
     reg [BIT_WIDTH-1:0] outwait0;

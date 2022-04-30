@@ -5,7 +5,7 @@ module TC_Ram (clk, rst, load, save, address, in, out);
     input save;
     input [7:0] address;
     input [7:0] in;
-    output tri0 [7:0] out;
+    output [7:0] out;
     reg [7:0] outval;
     reg [7:0] mem [0:255];
     always @ (posedge clk) begin

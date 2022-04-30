@@ -4,7 +4,7 @@ module TC_BitMemory (clk, rst, save, in, out);
     input load;
     input save;
     input [0:0] in;
-    output tri0 [0:0] out;
+    output [0:0] out;
     reg [0:0] outval;
     reg [0:0] value;
     

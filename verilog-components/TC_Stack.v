@@ -4,7 +4,7 @@ module TC_Stack (clk, rst, pop, push, in, out);
     input pop;
     input push;
     input [7:0] in;
-    output tri0 [7:0] out;
+    output [7:0] out;
     
     reg [7:0] mem [0:255];
     reg [7:0] sp;

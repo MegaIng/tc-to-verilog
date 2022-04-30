@@ -10,7 +10,7 @@ module TC_Rom (clk, rst, load, save, address, in, out);
     input save;
     input [15:0] address;
     input [BIT_WIDTH-1:0] in;
-    output tri0 [BIT_WIDTH-1:0] out;
+    output [BIT_WIDTH-1:0] out;
 
     reg [BIT_WIDTH-1:0] outval;
     reg [BIT_WIDTH-1:0] mem [0:MEM_WORDS];

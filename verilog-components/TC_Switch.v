@@ -2,7 +2,7 @@ module TC_Switch(en, in, out);
     parameter BIT_WIDTH = 1;
     input en;
     input [BIT_WIDTH-1:0] in;
-    output tri0 [BIT_WIDTH-1:0] out;
+    output [BIT_WIDTH-1:0] out;
     reg [BIT_WIDTH-1:0] outval;
     
     always @ (en or in) begin

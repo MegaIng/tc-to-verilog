@@ -5,12 +5,17 @@ module TC_Register (clk, rst, load, save, in, out);
     input load;
     input save;
     input [BIT_WIDTH-1:0] in;
-    output tri0 [BIT_WIDTH-1:0] out;
+    output [BIT_WIDTH-1:0] out;
     reg [BIT_WIDTH-1:0] outval;
     reg [BIT_WIDTH-1:0] value;
     
+    initial begin
+        outval <= {BIT_WIDTH{1'b0}};
+        value <= {BIT_WIDTH{1'b0}};
+    end
+    
     always @ (posedge clk) begin
-        if (load && !rst)
+        if (load)
             outval <= value;
         else
             outval <= {BIT_WIDTH{1'bZ}};
@@ -21,7 +26,6 @@ module TC_Register (clk, rst, load, save, in, out);
     end
     always @ (posedge rst) begin
         value <= {BIT_WIDTH{1'b0}};
-        outval <= {BIT_WIDTH{1'bZ}};
     end
     assign out = outval;
 endmodule

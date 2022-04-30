@@ -11,8 +11,8 @@ module TC_DualLoadRam (clk, rst, load0, save, address0, in, load1, address1, out
     input [BIT_WIDTH-1:0] in;
     input load1;
     input [15:0] address1;
-    output tri0 [BIT_WIDTH-1:0] out0;
-    output tri0 [BIT_WIDTH-1:0] out1;
+    output [BIT_WIDTH-1:0] out0;
+    output [BIT_WIDTH-1:0] out1;
 
     reg [BIT_WIDTH-1:0] outval0;
     reg [BIT_WIDTH-1:0] outval1;
