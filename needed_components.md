@@ -68,7 +68,7 @@ logxen> almost everything now has a size parameter to control its bit width. exc
 | Splitter64              | (maybe)        | yes             | yes   |
 | Maker64                 | (maybe)        | yes             | yes   |
 | FullAdder               | yes            | yes             | yes   |
-| BitMemory               | yes            |                 |       |
+| BitMemory               | yes            | yes             |       |
 | VirtualBitMemory        |                |                 |       |
 | SRLatch                 | yes            | yes *1          |       |
 | Decoder2                | yes            | yes             | yes   |

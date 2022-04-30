@@ -20,7 +20,7 @@ module TC_DualLoadRam (clk, rst, load0, save, address0, in, load1, address1, out
 
     //initial begin
     //    hexfile <= HEX_FILE;
-    //    if ($value$plusargs("HEXFILE=%s", hexfile)) begin
+    //    if ($value$plusargs("HEX_FILE=%s", hexfile)) begin
     //        $display("loading %0s", hexfile);
     //        $readmemh(hexfile, mem);
     //    end

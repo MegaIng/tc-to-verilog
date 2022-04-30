@@ -1,7 +1,7 @@
 module TC_Program8_1 (clk, rst, address, out);
     parameter MEM_BYTES = 256;
     parameter HEX_FILE = "test_jumps.mem";
-    parameter ARG_SIG = "HEXFILE=%s";
+    parameter ARG_SIG = "HEX_FILE=%s";
     reg [1024*8:0] hexfile;
     input clk;
     input rst;
