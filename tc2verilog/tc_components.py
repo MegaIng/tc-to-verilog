@@ -345,7 +345,7 @@ class Off(_TCComponent):
 
     @property
     def parameters(self):
-        return {"BIT_WIDTH": "'d1", "value": f"1'b{self.value}"}
+        return {"BIT_WIDTH": 1, "value": f"1'b{self.value}"}
 
 
 class On(_TCComponent):
@@ -361,7 +361,7 @@ class On(_TCComponent):
 
     @property
     def parameters(self):
-        return {"BIT_WIDTH": "'d1", "value": f"1'b{self.value}"}
+        return {"BIT_WIDTH": 1, "value": f"1'b{self.value}"}
 
 
 @_generate_sizes()
@@ -376,7 +376,7 @@ class _Constant(_TCComponent):
 
     @property
     def parameters(self):
-        return {"BIT_WIDTH": self.size, "value": f"1'b{self.value}"}
+        return {"BIT_WIDTH": self.size, "value": f"{self.size}'d{self.value}"}
 
 
 # endregion
@@ -511,7 +511,7 @@ class _Counter(_NeedsClock):
 
     @property
     def parameters(self):
-        return {"count": f"{self.size}'d{self.value})"}
+        return {"count": f"{self.size}'d{self.value}"}
 
 
 @_generate_sizes()
@@ -666,7 +666,7 @@ class Hdd(_NeedsClock):
         return {
             'MEM_WORDS': self.word_count,
             'ARG_SIG': f'"HEX_FILE_{self.name_id}=%s"',
-            'HEX_FILE': self.default_file_name,
+            'HEX_FILE': f'"{self.default_file_name}"',
         }
 
     @property
