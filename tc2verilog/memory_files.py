@@ -6,6 +6,7 @@ import subprocess
 from bin2coe import convert as bin2coe
 from io import BytesIO
 
+
 @dataclass
 class MemoryFile:
     out_file: str
@@ -28,12 +29,7 @@ class FileRomMemoryFile(MemoryFile):
     path: Path
 
     def get_raw_content(self, schematic_folder: Path) -> bytes:
-        from tc2verilog.tc_schematics import ON_WSL
-        if ON_WSL:
-            path = Path(subprocess.check_output(["wslpath", "-u", str(self.path)]).strip().decode())
-        else:
-            path = self.path
-        return path.read_bytes()
+        return self.path.read_bytes()
 
 
 @dataclass
@@ -46,7 +42,8 @@ class ComponentMemoryFile(MemoryFile):
 
 
 def translate_path(path):
+    from tc2verilog.tc_schematics import ON_WSL
     if ON_WSL:
         return Path(subprocess.check_output(["wslpath", "-u", str(path)]).strip().decode())
     else:
-        return path
+        return Path(path)
