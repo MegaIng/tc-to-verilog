@@ -2,7 +2,7 @@ from pathlib import Path
 from pprint import pprint
 
 from tc2verilog.create_verilog import output_verilog
-from tc2verilog.tc_schematics import TCSchematic
+from tc2verilog.tc_schematics import TCSchematic, SCHEMATICS
 
 # schematic = TCSchematic.open_level("decoder3", "Default", {
 #     "in": ("Input3Pin", {"value0": "a", "value1": "b", "value2": "c"}),
@@ -18,7 +18,7 @@ schematic = TCSchematic.open_level("architecture", "test", {
     "arch_in": ("Input1_1B", None),
 })
 
-output_verilog(Path("out", "test"), "test", schematic)
+output_verilog(Path("out", "test"), "test", schematic, SCHEMATICS / "architecture" / "test")
 
 #
 # schematic = TCSchematic.open_level("component_factory/tc-to-veri", "test_constant")

@@ -111,7 +111,7 @@ class TCSchematic:
         pins = {}
         for com in self.components:
             for i, (pos, pin) in enumerate(com.positioned_pins):
-                assert pos not in pins, pos
+                assert pos not in pins, (pos, com)
                 pins[pos] = (com, pin, i)
         return pins
 

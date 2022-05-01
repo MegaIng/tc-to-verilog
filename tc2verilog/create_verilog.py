@@ -138,12 +138,12 @@ endmodule
             yield from component.memory_files
 
 
-def output_verilog(out_folder: Path, module_name: str, schematic: TCSchematic):
+def output_verilog(out_folder: Path, module_name: str, schematic: TCSchematic, schematic_folder=None):
     out_folder.mkdir(parents=True, exist_ok=True)
 
     module = VerilogModule(module_name, schematic)
 
     (out_folder / f"{module_name}.v").write_text(module.full_verilog())
 
-    for file_name, memory_content in module.memory_files():
-        (out_folder / file_name).write_text(memory_content.hex("\n", -1))
+    for file in module.memory_files():
+        (out_folder / file.out_file).write_text(file.get_hex_content(schematic_folder))

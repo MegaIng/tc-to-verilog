@@ -659,7 +659,7 @@ class Hdd(_NeedsClock):
 
     @property
     def word_count(self):
-        return int(self.custom_string)
+        return int(self.custom_string) if self.custom_string else 256
 
     @property
     def parameters(self):
@@ -684,8 +684,8 @@ class DualLoadRam(_NeedsClock):
         _InSquare("save", (-13, -6), 1),
         _In("address0", (-13, -5), 16),
         _InSquare("in", (-13, -4), 64),
-        _In("load1", (-13, -7), 1),
-        _In("address1", (-13, -5), 16),
+        _In("load1", (-13, -3), 1),
+        _In("address1", (-13, -2), 16),
         _OutTri("out0", (13, -7), 64),
         _OutTri("out1", (13, -6), 64),
     ]
