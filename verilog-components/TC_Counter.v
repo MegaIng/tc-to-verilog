@@ -7,26 +7,25 @@ module TC_Counter (clk, rst, save, in, out);
     input [BIT_WIDTH-1:0] in;
     output reg [BIT_WIDTH-1:0] out;
     
-    reg [BIT_WIDTH-1:0] out_reg;
+    reg [BIT_WIDTH-1:0] value;
     
     initial begin
         out = {BIT_WIDTH{1'b0}};
-        out_reg = {BIT_WIDTH{1'b0}};
+        value = {BIT_WIDTH{1'b0}};
     end
     
-    always @ (negedge clk) begin
-        if (!rst) begin
+    always @ (posedge clk) begin
+        if (rst) begin
+            out <= {BIT_WIDTH{1'b0}};
+            value <= {BIT_WIDTH{1'b0}};
+        end else begin
             if (save) begin
                 out <= in;
-                out_reg <= in + count;
+                value <= in + count;
             end else begin
-                out <= out_reg;
-                out_reg <= out_reg + count;
+                out <= value;
+                value <= value + count;
             end
-        end else begin
-            out_reg <= {BIT_WIDTH{1'b0}};
         end
     end
-    
-    //assign out = out_reg;
 endmodule

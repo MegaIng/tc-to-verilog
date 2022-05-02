@@ -839,7 +839,7 @@ class FileRom(_NeedsClock):
 
     @property
     def default_file_name(self):
-        return f'{self.name_id}.file_rom.m64'
+        return f'{self.name_id}.file_rom.m8'
 
     @property
     def memory_files(self):
