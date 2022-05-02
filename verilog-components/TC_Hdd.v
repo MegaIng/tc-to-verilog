@@ -12,7 +12,6 @@ module TC_Hdd (clk, rst, seek, load, save, in, out);
     output [63:0] out;
     
     reg [63:0] mem [0:MEM_WORDS-1];
-    reg [63:0] outval;
     reg [63:0] mp;
     
     initial begin
@@ -22,26 +21,26 @@ module TC_Hdd (clk, rst, seek, load, save, in, out);
             $readmemh(hexfile, mem);
         end else begin
             $display("no file specified");
+            for (i=0; i<MEM_WORDS; i=i+1) mem[i] <= {BIT_WIDTH{1'b0}};
         end
+        out = {64{1'b0}};
     end
 
-    always @ (posedge clk or rst) begin
+    always @ (posedge clk) begin
         if (rst) begin
-            mp = {64{1'bZ}};
-            outval = {64{1'bZ}};
+            mp = {64{1'b0}};
+            out = {64{1'b0}};
         end else begin
             mp <= mp + seek;
             if (load) begin
-                outval <= mem[mp];
+                out <= mem[mp];
             end
         end
     end
     
-    always @ (posedge clk or rst) begin
+    always @ (negedge clk) begin
         if (save && !rst) begin
             mem[mp] <= in;
         end
     end
-    
-    assign out = outval;
 endmodule

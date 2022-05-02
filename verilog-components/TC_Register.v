@@ -5,27 +5,27 @@ module TC_Register (clk, rst, load, save, in, out);
     input load;
     input save;
     input [BIT_WIDTH-1:0] in;
-    output [BIT_WIDTH-1:0] out;
-    reg [BIT_WIDTH-1:0] outval;
+    output reg [BIT_WIDTH-1:0] out;
+
     reg [BIT_WIDTH-1:0] value;
+    reg reset;
     
     initial begin
-        outval <= {BIT_WIDTH{1'b0}};
+        out <= {BIT_WIDTH{1'b0}};
         value <= {BIT_WIDTH{1'b0}};
     end
     
     always @ (posedge clk) begin
-        if (load)
-            outval <= value;
-        else
-            outval <= {BIT_WIDTH{1'bZ}};
+        if (rst)
+            out <= {BIT_WIDTH{1'b0}};
+        else if (load)
+            out <= value;
+        reset <= rst;
     end
-    always @ (negedge clk or posedge rst) begin
-        if (save && !rst)
+    always @ (negedge clk) begin
+        if (reset)
+            value <= {BIT_WIDTH{1'b0}};
+        else if (save)
             value <= in;
-        else if (rst)
-		      value <= {BIT_WIDTH{1'b0}};
     end
-
-    assign out = outval;
 endmodule

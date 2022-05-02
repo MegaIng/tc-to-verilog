@@ -1,8 +1,6 @@
 module TC_DualLoadRam (clk, rst, load0, save, address0, in, load1, address1, out0, out1);
     parameter BIT_WIDTH = 16;
-    parameter MEM_WORDS = 65536;
-    //parameter HEX_FILE = "test_jumps.mem";
-    //reg [1024*8:0] hexfile;
+    parameter MEM_WORDS = 256;
     input clk;
     input rst;
     input load0;
@@ -14,34 +12,30 @@ module TC_DualLoadRam (clk, rst, load0, save, address0, in, load1, address1, out
     output [BIT_WIDTH-1:0] out0;
     output [BIT_WIDTH-1:0] out1;
 
-    reg [BIT_WIDTH-1:0] outval0;
-    reg [BIT_WIDTH-1:0] outval1;
     reg [BIT_WIDTH-1:0] mem [0:MEM_WORDS];
 
-    //initial begin
-    //    hexfile <= HEX_FILE;
-    //    if ($value$plusargs("HEX_FILE=%s", hexfile)) begin
-    //        $display("loading %0s", hexfile);
-    //        $readmemh(hexfile, mem);
-    //    end
-    //end
-
-    always @ (posedge clk or rst) begin
-        if (load0 && !rst)
-            outval0 <= mem[address0];
-        else
-            outval0 <= {BIT_WIDTH{1'bZ}};
-        if (load1 && !rst)
-            outval1 <= mem[address1];
-        else
-            outval1 <= {BIT_WIDTH{1'BZ}};
+    initial begin
+        for (i=0; i<MEM_WORDS; i=i+1) mem[i] <= {BIT_WIDTH{1'b0}};
+        out0 <= {64{1'b0}};
+        out1 <= {64{1'b0}};
     end
 
-    always @ (negedge clk or rst) begin
-        if (save)
+    always @ (address0 or rst) begin
+        if (load0 && !rst)
+            out0 <= mem[address0];
+        else
+            out0 <= {BIT_WIDTH{1'b0}};
+    end
+    always @ (address1 or rst) begin
+        if (load1 && !rst)
+            out1 <= mem[address1];
+        else
+            out1 <= {BIT_WIDTH{1'B0}};
+    end
+    always @ (negedge clk) begin
+        if (rst)
+            for (i=0; i<MEM_WORDS; i=i+1) mem[i] <= {BIT_WIDTH{1'b0}};
+        else if (save)
             mem[address0] <= in;
     end
-
-    assign out0 = outval0;
-    assign out1 = outval1;
 endmodule

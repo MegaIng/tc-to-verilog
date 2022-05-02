@@ -23,7 +23,7 @@ module TC_Program8_4 (clk, rst, address, out0, out1, out2, out3);
         end
     end
 
-    always @ (posedge clk or posedge rst) begin
+    always @ (address or rst) begin
         if (rst) begin
             out0 <= 8'b0000_0000;
             out1 <= 8'b0000_0000;

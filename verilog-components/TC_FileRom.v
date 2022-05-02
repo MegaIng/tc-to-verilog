@@ -1,5 +1,6 @@
 module TC_FileRom (clk, rst, en, address, out);
-    parameter MEM_BYTES = 65536;
+    parameter BIT_WIDTH = 8;
+    parameter MEM_BYTES = 302;
     parameter HEX_FILE = "test_jumps.mem";
     parameter ARG_SIG = "HEX_FILE=%s";
     parameter FILE_BYTES = 302;
@@ -15,7 +16,8 @@ module TC_FileRom (clk, rst, en, address, out);
     integer fid;
     integer fsize;
     integer data;
-
+    integer i;
+    
     initial begin
         hexfile = HEX_FILE;
         filebytes = FILE_BYTES;
@@ -25,7 +27,9 @@ module TC_FileRom (clk, rst, en, address, out);
             $readmemh(hexfile, mem);
         end else begin
             $display("no file specified");
+            for (i=0; i<MEM_BYTES; i=i+1) mem[i] <= {BIT_WIDTH{1'b0}};
         end
+        out = {64{1'b0}};
 
         //fid = $fopen(hexfile, "rb");
         //if (fid == 0) begin
@@ -46,7 +50,7 @@ module TC_FileRom (clk, rst, en, address, out);
         //$fclose(fid);
     end
 
-    always @ (posedge clk or posedge rst) begin
+    always @ (address or rst) begin
         if (rst || !en) begin
             out = {64{1'b0}};
         end else if (address == {64{1'b1}}) begin

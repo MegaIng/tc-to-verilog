@@ -42,8 +42,9 @@ class VerilogModule:
             targets = [p[1] for p in group if isinstance(p[1][1], (In))]
             assert len(group) == len(sources) + len(targets), (group)
             sizes = {p[1][1].size for p in group}
-            assert len(sizes) == 1, sizes
-            size, = sizes
+            #assert len(sizes) == 1, sizes
+            #size, = sizes
+            size = max(sizes)
             wire = wires_by_name[f"wire{i}"] = Wire(f"wire{i}", size, sources, targets)
             for pos, _ in group:
                 wires_by_position[pos] = wire

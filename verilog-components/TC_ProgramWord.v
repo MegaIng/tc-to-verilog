@@ -24,7 +24,7 @@ module TC_ProgramWord (clk, rst, address, out0, out1, out2, out3);
         end
     end
 
-    always @ (posedge clk or posedge rst) begin
+    always @ (address or rst) begin
         if (rst) begin
             out0 <= {BIT_WIDTH{1'b0}};
             out1 <= {BIT_WIDTH{1'b0}};

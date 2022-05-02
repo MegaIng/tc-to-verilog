@@ -46,7 +46,8 @@ class ComponentMemoryFile(MemoryFile):
 
 
 def translate_path(path):
+    from tc2verilog.tc_schematics import ON_WSL
     if ON_WSL:
         return Path(subprocess.check_output(["wslpath", "-u", str(path)]).strip().decode())
     else:
-        return path
+        return Path(path)

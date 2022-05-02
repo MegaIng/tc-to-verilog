@@ -10,9 +10,8 @@ module TC_Rom (clk, rst, load, save, address, in, out);
     input save;
     input [15:0] address;
     input [BIT_WIDTH-1:0] in;
-    output [BIT_WIDTH-1:0] out;
+    output reg [BIT_WIDTH-1:0] out;
 
-    reg [BIT_WIDTH-1:0] outval;
     reg [BIT_WIDTH-1:0] mem [0:MEM_WORDS];
 
     initial begin
@@ -22,22 +21,19 @@ module TC_Rom (clk, rst, load, save, address, in, out);
             $readmemh(hexfile, mem);
         end else begin
             $display("no file specified");
+            for (i=0; i<MEM_WORDS; i=i+1) mem[i] <= {BIT_WIDTH{1'b0}};
         end
+        out <= {BIT_WIDTH{1'b0}};
     end
 
-    always @ (posedge clk) begin
-        if (load)
-            outval <= mem[address];
+    always @ (address or rst) begin
+        if (load && !rst)
+            out <= mem[address];
         else
-            outval <= {BIT_WIDTH{1'bZ}};
+            out <= {BIT_WIDTH{1'b0}};
     end
-
-    always @ (negedge clk or rst) begin
-        if (rst)
-            mem[address] <= {BIT_WIDTH{1'b0}};
-        else if (save)
+    always @ (negedge clk) begin
+        if (save && !rst)
             mem[address] <= in;
     end
-
-    assign out = outval;
 endmodule

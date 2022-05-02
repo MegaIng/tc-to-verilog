@@ -1,26 +1,29 @@
 module TC_BitMemory (clk, rst, save, in, out);
     input clk;
     input rst;
-    input load;
     input save;
     input [0:0] in;
-    output [0:0] out;
-    reg [0:0] outval;
+    output reg [0:0] out;
+
     reg [0:0] value;
+    reg reset;
+    
+    initial begin
+        out <= 1'b0;
+        value <= 1'b0;
+    end
     
     always @ (posedge clk) begin
-        if (!rst)
-            outval <= value;
+        if (rst)
+            out <= 1'b0;
         else
-            outval <= 1'bZ;
+            out <= value;
+        reset <= rst;
     end
-    always @ (negedge clk or rst) begin
-        if (save && !rst)
+    always @ (negedge clk) begin
+        if (reset)
+            value <= 1'b0;
+        else if (save)
             value <= in;
     end
-    always @ (posedge rst) begin
-        value <= 1'b0;
-        outval <= 1'bZ;
-    end
-    assign out = outval;
 endmodule
