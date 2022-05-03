@@ -51,7 +51,11 @@ class TCWire:
 
 
 IGNORE_COMPONENTS = {
-    "Screen"
+    "Screen",
+    "ProbeMemoryBit",
+    "ProbeMemoryWord",
+    "ProbeWireBit",
+    "ProbeWireWord",
 }
 
 
@@ -59,6 +63,14 @@ IGNORE_COMPONENTS = {
 class TCSchematic:
     raw_nim_data: dict
     io_mapping: dict[str, tuple[str, dict[str, str] | None]] | None = None
+
+    @property
+    def save_version(self):
+        return self.raw_nim_data["save_version"]
+
+    @property
+    def custom_component_id(self):
+        return self.raw_nim_data["save_version"]
 
     @cached_property
     def wires(self) -> list[TCWire]:

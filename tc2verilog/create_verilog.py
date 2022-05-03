@@ -28,7 +28,7 @@ class Wire:
             for i, (tcc, tcp, _) in enumerate(self.sources):
                 if desc == (tcc, tcp):
                     return f"{self.name}_{i}"
-            raise ValueError(desc)
+            raise ValueError(desc, [(tcc.name, type(tcc).__name__, tcp.name) for tcc, tcp, _ in self.sources])
         else:
             return self.name
 
@@ -86,7 +86,7 @@ class VerilogModule:
         return "\n    ".join(wires), "\n     ".join(tri_state_wires)
 
     def _connect_wire_port(self, wire: Wire, pin: TCPin, pin_name, desc):
-        if isinstance(pin, In):
+        if isinstance(pin, Out):
             target, source = wire, pin
             target_name = wire.name_for(desc)
         else:
