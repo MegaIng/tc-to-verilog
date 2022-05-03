@@ -69,15 +69,19 @@ class TCSchematic:
         out = []
         used_labels = set()
         for c in self.raw_nim_data["components"]:
-            if c["kind"] not in IGNORE_COMPONENTS:
+            if c["kind"] in IGNORE_COMPONENTS:
+                continue
+            if c["kind"] == "Custom":
+                obj = custom_component_classes[c["custom_id"]](c)
+            else:
                 obj = getattr(tc_components, c["kind"])(c)
-                if len(self.wires_by_position[obj.above_topleft]) == 1:
-                    wire, = self.wires_by_position[obj.above_topleft]
-                    if wire.comment:
-                        assert wire.comment not in used_labels, wire.comment
-                        obj.name = wire.comment
-                        used_labels.add(wire.comment)
-                out.append(obj)
+            if len(self.wires_by_position[obj.above_topleft]) == 1:
+                wire, = self.wires_by_position[obj.above_topleft]
+                if wire.comment:
+                    assert wire.comment not in used_labels, wire.comment
+                    obj.name = wire.comment
+                    used_labels.add(wire.comment)
+            out.append(obj)
         return out
 
     @classmethod
@@ -176,11 +180,13 @@ def _get_cc_schematic(cc_id):
     return CC_SCHEMATICS[cc_id]
 
 
-def _get_cc_blocks(schematic: TCSchematic):
-    out = []
+custom_component_classes = {}
 
 
 class CustomComponent(TCComponent):
+    def __init_subclass__(cls, **kwargs):
+        custom_component_classes[kwargs["custom_id"]] = cls
+
     @cached_property
     def schematic(self) -> TCSchematic:
         return _get_cc_schematic(self.custom_id)
@@ -191,8 +197,11 @@ class CustomComponent(TCComponent):
 
     @property
     def pins(self):
+        raise ValueError(f"This custom component {type(self).__name__} does not have it's pins specified")
 
-        return
+    @property
+    def verilog_name(self):
+        return f"Custom_{self.custom_id}"
 
 
 ON_WSL = False

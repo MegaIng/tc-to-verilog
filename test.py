@@ -1,8 +1,10 @@
 from pathlib import Path
 from pprint import pprint
 
+from tc2verilog.base_tc_component import In
 from tc2verilog.create_verilog import output_verilog
-from tc2verilog.tc_schematics import TCSchematic, SCHEMATICS
+from tc2verilog.tc_schematics import TCSchematic, SCHEMATICS, CustomComponent
+
 
 # schematic = TCSchematic.open_level("decoder3", "Default", {
 #     "in": ("Input3Pin", {"value0": "a", "value1": "b", "value2": "c"}),
@@ -20,12 +22,19 @@ from tc2verilog.tc_schematics import TCSchematic, SCHEMATICS
 #
 # print(output_verilog("test_ai_showdown", schematic), file=open("ai_showdown.v", "w"))
 
-schematic = TCSchematic.open_level("architecture", "OVERTURE", {
+class Cond(CustomComponent, custom_id=567438732941652948):
+    pins = [
+        In("Condition", (-1, -1), 8),
+        In("Input", (-1, 0), 8),
+        In("Result", (2, 0), 1),
+    ]
+
+
+schematic = TCSchematic.open_level("architecture", "test", {
     "arch_out": ("Output1_1B", None),
     "arch_in": ("Input1_1B", None),
 })
 
-print(output_verilog("OVERTURE", schematic), file=open("OVERTURE.v", "w"))
 output_verilog(Path("out", "test"), "test", schematic, SCHEMATICS / "architecture" / "test")
 
 #
