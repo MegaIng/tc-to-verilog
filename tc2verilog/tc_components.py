@@ -524,11 +524,11 @@ class _Register(_NeedsClock):
     ]
 
 
-@_generate_sizes()
+@_generate_sizes(1, 8, 16, 32, 64)
 class _DelayLine(_NeedsClock):
     pins = [
-        _InSquare("in", (_size(-1, - 2, -2, - 3), 0), _size),
-        _Out("out", (_size(1, 2, 2, 3), 0), _size),
+        _InSquare("in", (_size(-1, -1, - 2, -2, - 3), 0), _size),
+        _Out("out", (_size(1, 1, 2, 2, 3), 0), _size),
     ]
 
 
