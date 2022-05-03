@@ -11,8 +11,8 @@ from tc2verilog.tc_schematics import TCSchematic
 
 @dataclass
 class Wire:
-    wire_name: str
-    wire_size: int
+    name: str
+    size: int
     sources: list[tuple[TCComponent, TCPin, int]]
     targets: list[tuple[TCComponent, TCPin, int]]
 
@@ -41,9 +41,7 @@ class VerilogModule:
             sources = [p[1] for p in group if isinstance(p[1][1], (Out, OutTri))]
             targets = [p[1] for p in group if isinstance(p[1][1], (In))]
             assert len(group) == len(sources) + len(targets), (group)
-            sizes = {p[1][1].size for p in group}
-            #assert len(sizes) == 1, sizes
-            #size, = sizes
+            sizes = {p[1].size for p in sources}
             size = max(sizes)
             wire = wires_by_name[f"wire{i}"] = Wire(f"wire{i}", size, sources, targets)
             for pos, _ in group:
@@ -60,10 +58,25 @@ class VerilogModule:
 
     def _build_wires(self):
         wires = [
-            f"wire [{wire.wire_size - 1}:0] {wire.wire_name};"
+            f"wire [{wire.size - 1}:0] {wire.name};"
             for wire in self.wires_by_name.values()
         ]
         return "\n    ".join(wires)
+
+    def _connect_wire_port(self, wire: Wire, pin: TCPin, pin_name):
+        if isinstance(pin, In):
+            target, source = wire, pin
+            target_name = wire.name
+        else:
+            target, source = pin, wire
+            target_name = pin_name
+        if target.size > source.size:
+            value = f"{{{{{target.size - source.size}{{1'b0}}}}, {source.name}}}"
+        elif target.size == source.size:
+            value = source.name
+        else:
+            value = f"{source.name}[{target.size - 1}:0]"
+        return f"assign {target_name} = {value}"
 
     def _build_ports(self):
         ports = [("clk", "input wire"), ("rst", "input wire")]
@@ -75,25 +88,42 @@ class VerilogModule:
                 wire = None
             if isinstance(pin, Out):
                 ports.append((name, f"input wire [{pin.size - 1}:0]"))
-                if wire:
-                    port_wires.append(f"assign {wire.wire_name} = {name};")
             else:
                 ports.append((name, f"output wire [{pin.size - 1}:0]"))
-                if wire:
-                    port_wires.append(f"assign {name} = {wire.wire_name};")
+            if wire:
+                port_wires.append(self._connect_wire_port(wire, pin, name))
         return (
             ", ".join(n for n, _ in ports),
             self._line_sep.join(f'{t} {n};' for n, t in ports),
-            self._line_sep.join(port_wires))
+            self._line_sep.join(port_wires)
+        )
 
     def _build_parameters(self, component):
         if not component.parameters:
             return ""
         return f" # ({', '.join(f'.{n}({v})' for n, v in component.parameters.items())})"
 
+    def _connect_wire_submodule(self, wire: Wire, port: TCPin):
+        if isinstance(port, In):
+            if port.size > wire.size:
+                value = f"{{{{{port.size - wire.size}{{1'b0}}}}, {wire.name}}}"
+            elif port.size == wire.size:
+                value = wire.name
+            else:
+                value = f"{wire.name}[{port.size - 1}:0]"
+        else:
+            if port.size > wire.size:
+                raise ValueError("This should never happen; the wires should be large enough to accommodate all inputs")
+            elif port.size == wire.size:
+                value = wire.name
+            else:
+                value = f"{wire.name}[{port.size-1}:0]"
+        value = f".{port.name}({value})"
+        return value
+
     def _build_submodule(self, component: TCComponent):
         arguments = [
-            f'.{p.name}({self.wires_by_position[pos].wire_name})'
+            self._connect_wire_submodule(self.wires_by_position[pos], p)
             if t else f".{p.name}({p.size}'d0)"
             for pos, p in component.positioned_pins
             if (t := (pos in self.wires_by_position)) or isinstance(p, In)

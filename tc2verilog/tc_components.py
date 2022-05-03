@@ -785,7 +785,7 @@ class ProgramWord(_NeedsClock):
 
     @property
     def word_size(self) -> _Size:
-        return 8 * (2 ** int(self.custom_string))
+        return 8 * (2 ** int(self.custom_string or 1))
 
     @property
     def parameters(self):
