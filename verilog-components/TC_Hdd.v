@@ -1,19 +1,19 @@
-module TC_Rom (clk, rst, load, save, address, in, out);
-    parameter BIT_WIDTH = 16;
+module TC_Hdd (clk, rst, seek, load, save, in, out);
     parameter MEM_WORDS = 256;
     parameter HEX_FILE = "test_jumps.mem";
     parameter ARG_SIG = "HEX_FILE=%s";
     reg [1024*8:0] hexfile;
     input clk;
     input rst;
+    input [63:0] seek;
     input load;
     input save;
-    input [15:0] address;
-    input [BIT_WIDTH-1:0] in;
-    output reg [BIT_WIDTH-1:0] out;
-
-    reg [BIT_WIDTH-1:0] mem [0:MEM_WORDS];
-
+    input [63:0] in;
+    output [63:0] out;
+    
+    reg [63:0] mem [0:MEM_WORDS-1];
+    reg [63:0] mp;
+    
     initial begin
         hexfile <= HEX_FILE;
         if ($value$plusargs(ARG_SIG, hexfile)) begin
@@ -23,17 +23,24 @@ module TC_Rom (clk, rst, load, save, address, in, out);
             $display("no file specified");
             for (i=0; i<MEM_WORDS; i=i+1) mem[i] <= {BIT_WIDTH{1'b0}};
         end
-        out <= {BIT_WIDTH{1'b0}};
+        out = {64{1'b0}};
     end
 
-    always @ (address or rst) begin
-        if (load && !rst)
-            out <= mem[address];
-        else
-            out <= {BIT_WIDTH{1'b0}};
+    always @ (posedge clk) begin
+        if (rst) begin
+            mp = {64{1'b0}};
+            out = {64{1'b0}};
+        end else begin
+            mp <= mp + seek;
+            if (load) begin
+                out <= mem[mp];
+            end
+        end
     end
+    
     always @ (negedge clk) begin
-        if (save && !rst)
-            mem[address] <= in;
+        if (save && !rst) begin
+            mem[mp] <= in;
+        end
     end
 endmodule

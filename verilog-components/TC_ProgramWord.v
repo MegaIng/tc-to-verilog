@@ -1,8 +1,8 @@
 module TC_ProgramWord (clk, rst, address, out0, out1, out2, out3);
     parameter BIT_WIDTH = 16;
-    parameter MEM_WORDS = 65536;
+    parameter MEM_WORDS = 256;
     parameter HEX_FILE = "test_jumps.mem";
-    parameter ARG_SIG = "HEXFILE=%s";
+    parameter ARG_SIG = "HEX_FILE=%s";
     reg [1024*8:0] hexfile;
     input clk;
     input rst;
@@ -19,10 +19,12 @@ module TC_ProgramWord (clk, rst, address, out0, out1, out2, out3);
         if ($value$plusargs(ARG_SIG, hexfile)) begin
             $display("loading %0s", hexfile);
             $readmemh(hexfile, mem);
+        end else begin
+            $display("no file specified");
         end
     end
 
-    always @ (posedge clk or posedge rst) begin
+    always @ (address or rst) begin
         if (rst) begin
             out0 <= {BIT_WIDTH{1'b0}};
             out1 <= {BIT_WIDTH{1'b0}};

@@ -42,6 +42,9 @@ class TCComponent:
     raw_nim_data: dict
 
     pins: ClassVar[list[TCPin]]
+    name: str = None
+
+    memory_files = ()
 
     @property
     def pos(self) -> tuple[int, int]:
@@ -71,7 +74,13 @@ class TCComponent:
     def verilog_name(self):
         return type(self).__name__
 
-    parameters = None
+    @property
+    def name_id(self):
+        return self.name if self.name is not None else hex(self.permanent_id)[2:]
+
+    @property
+    def parameters(self):
+        return {}
 
     @property
     def positioned_pins(self) -> list[tuple[tuple[int, int], TCPin]]:
@@ -84,6 +93,19 @@ class TCComponent:
         return [((self.x + p.rel_pos[0] * fxx + p.rel_pos[1] * fxy,
                   self.y + p.rel_pos[0] * fyx + p.rel_pos[1] * fyy
                   ), p) for p in self.pins]
+
+    @property
+    def above_topleft(self):
+        (fxx, fxy), (fyx, fyy) = {
+            0: ((1, 0), (0, 1)),
+            1: ((0, -1), (1, 0)),
+            2: ((-1, 0), (0, -1)),
+            3: ((0, 1), (-1, 0)),
+        }[self.rotation]
+        rel_pos = min(p.rel_pos for p in self.pins)
+        rel_pos = rel_pos[0], rel_pos[1] - 1
+        return (self.x + rel_pos[0] * fxx + rel_pos[1] * fxy,
+                self.y + rel_pos[0] * fyx + rel_pos[1] * fyy)
 
 
 class NeedsClock(TCComponent):
@@ -118,7 +140,7 @@ def _fill_holes(size, i, obj):
 
 
 def _generate_sized_class(base, i, size: int):
-    size_param = f".BIT_WIDTH('d{size})"
+    size_param = {'BIT_WIDTH': size}
 
     class SizedSubclass(base):
         pins = [
@@ -134,7 +156,7 @@ def _generate_sized_class(base, i, size: int):
             if sp is None:
                 return size_param
             else:
-                return f"{sp}, {size_param}"
+                return sp | size_param
 
     SizedSubclass.__name__ = f"{base.__name__.removeprefix('_')}{size}"
     SizedSubclass.__qualname__ = base.__qualname__.replace(base.__name__, SizedSubclass.__name__)

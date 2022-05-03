@@ -19,7 +19,7 @@ from dataclasses import dataclass
 from typing import Literal, TypeAlias, ClassVar, cast
 
 
-@dataclass
+@dataclass(eq=False)
 class TCWire:
     raw_nim_data: dict
 
@@ -55,7 +55,7 @@ IGNORE_COMPONENTS = {
 }
 
 
-@dataclass
+@dataclass(eq=False)
 class TCSchematic:
     raw_nim_data: dict
     io_mapping: dict[str, tuple[str, dict[str, str] | None]] | None = None
@@ -66,9 +66,19 @@ class TCSchematic:
 
     @cached_property
     def components(self) -> list[TCComponent]:
-        return [getattr(tc_components, c["kind"])(c)
-                for c in self.raw_nim_data["components"]
-                if c["kind"] not in IGNORE_COMPONENTS]
+        out = []
+        used_labels = set()
+        for c in self.raw_nim_data["components"]:
+            if c["kind"] not in IGNORE_COMPONENTS:
+                obj = getattr(tc_components, c["kind"])(c)
+                if len(self.wires_by_position[obj.above_topleft]) == 1:
+                    wire, = self.wires_by_position[obj.above_topleft]
+                    if wire.comment:
+                        assert wire.comment not in used_labels, wire.comment
+                        obj.name = wire.comment
+                        used_labels.add(wire.comment)
+                out.append(obj)
+        return out
 
     @classmethod
     def open_level(cls, level_name: str, save_name: str,
@@ -86,11 +96,22 @@ class TCSchematic:
         return points
 
     @cached_property
+    def wires_by_position(self) -> dict[tuple[int, int], set[TCWire]]:
+        positions = defaultdict(set)
+        for wire in self.wires:
+            positions[wire.start].add(wire)
+            positions[wire.end].add(wire)
+        out = defaultdict(set)
+        for p, group in self.wire_map.items():
+            out[p] = set.union(*(positions[i] for i in group))
+        return out
+
+    @cached_property
     def pin_map(self) -> dict[tuple[int, int], tuple[TCComponent, TCPin, int]]:
         pins = {}
         for com in self.components:
             for i, (pos, pin) in enumerate(com.positioned_pins):
-                assert pos not in pins, pos
+                assert pos not in pins, (pos, com)
                 pins[pos] = (com, pin, i)
         return pins
 
@@ -170,11 +191,15 @@ class CustomComponent(TCComponent):
 
     @property
     def pins(self):
-        
+
         return
 
 
+ON_WSL = False
+
+
 def get_path():
+    global ON_WSL
     match sys.platform.lower():
         case "windows" | "win32":
             potential_paths = [Path(os.path.expandvars(r"%APPDATA%\Godot\app_userdata\Turing Complete"))]
@@ -191,6 +216,8 @@ def get_path():
             return None
     for base_path in potential_paths:
         if base_path.exists():
+            if "/mnt/c/Users" in str(base_path):
+                ON_WSL = True
             break
     else:
         print("You need Turing Complete installed to use everything here")

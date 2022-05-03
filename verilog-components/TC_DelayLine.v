@@ -3,19 +3,27 @@ module TC_DelayLine (clk, rst, in, out);
     input clk;
     input rst;
     input [BIT_WIDTH-1:0] in;
-    output tri0 [BIT_WIDTH-1:0] out;
+    output reg [BIT_WIDTH-1:0] out;
 
-    reg [BIT_WIDTH-1:0] outval;
     reg [BIT_WIDTH-1:0] value;
+    reg reset;
     
-    always @ (posedge clk or posedge rst) begin
-        if (rst) begin
-            outval <= {BIT_WIDTH{1'b0}};
-            value <= {BIT_WIDTH{1'b0}};
-        end else begin
-            outval <= value;
-            value <= in;
-        end
+    initial begin
+        out <= {BIT_WIDTH{1'b0}};
+        value <= {BIT_WIDTH{1'b0}};
     end
-    assign out = outval;
+    
+    always @ (posedge clk) begin
+        if (rst)
+            out <= {BIT_WIDTH{1'b0}};
+        else
+            out <= value;
+        reset <= rst;
+    end
+    always @ (negedge clk) begin
+        if (reset)
+            value <= {BIT_WIDTH{1'b0}};
+        else
+            value <= in;
+    end
 endmodule

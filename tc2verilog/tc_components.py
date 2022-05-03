@@ -1,3 +1,6 @@
+from functools import cached_property
+from math import ceil
+from pathlib import Path
 from typing import ClassVar as _ClassVar
 
 from tc2verilog.base_tc_component import TCComponent as _TCComponent, Out as _Out, OutTri as _OutTri, In as _In, \
@@ -8,6 +11,7 @@ from tc2verilog.base_tc_component import TCComponent as _TCComponent, Out as _Ou
 from tc2verilog.tc_schematics import CustomComponent as Custom
 
 # region BitComponents
+from tc2verilog.memory_files import MemoryFile, ComponentMemoryFile, FileRomMemoryFile, translate_path
 
 
 class Not(_TCComponent):
@@ -47,6 +51,24 @@ class And3(_TCComponent):
 
 
 class Or(_TCComponent):
+    pins = [
+        _In("in0", (-1, 1), 1),
+        _In("in1", (-1, -1), 1),
+
+        _Out("out", (2, 0), 1),
+    ]
+
+
+class Xor(_TCComponent):
+    pins = [
+        _In("in0", (-1, 1), 1),
+        _In("in1", (-1, -1), 1),
+
+        _Out("out", (2, 0), 1),
+    ]
+
+
+class Xnor(_TCComponent):
     pins = [
         _In("in0", (-1, 1), 1),
         _In("in1", (-1, -1), 1),
@@ -99,7 +121,7 @@ class Decoder3(_TCComponent):
         _In("dis", (0, -4), 1),
         _In("sel0", (-1, -3), 1),
         _In("sel1", (-1, -2), 1),
-        _In("sel3", (-1, -1), 1),
+        _In("sel2", (-1, -1), 1),
 
         _Out("out0", (1, -3), 1),
         _Out("out1", (1, -2), 1),
@@ -134,6 +156,18 @@ class _And(_TCComponent):
         _In("in1", (-1, 0), _size),
 
         _Out("out", (1, 0), _size),
+    ]
+
+
+@_generate_sizes()
+class _Add(_TCComponent):
+    pins = [
+        _In("in0", (-1, 1), _size),
+        _In("in1", (-1, 0), _size),
+        _In("ci", (-1, -1), 1),
+
+        _Out("out", (1, -1), _size),
+        _Out("co", (1, 0), 1),
     ]
 
 
@@ -313,7 +347,7 @@ class Off(_TCComponent):
 
     @property
     def parameters(self):
-        return f".BIT_WIDTH('d1), .value(1'b{self.value})"
+        return {"BIT_WIDTH": 1, "value": f"1'b{self.value}"}
 
 
 class On(_TCComponent):
@@ -329,7 +363,7 @@ class On(_TCComponent):
 
     @property
     def parameters(self):
-        return f".BIT_WIDTH('d1), .value(1'b{self.value})"
+        return {"BIT_WIDTH": 1, "value": f"1'b{self.value}"}
 
 
 @_generate_sizes()
@@ -340,11 +374,11 @@ class _Constant(_TCComponent):
 
     @property
     def value(self):
-        return int(self.custom_string) & (2 ** 64 - 1)
+        return int(self.custom_string) & (2 ** 64 - 1) if self.custom_string else 0
 
     @property
     def parameters(self):
-        return f".value({self.size}'d{self.value})"
+        return {"BIT_WIDTH": self.size, "value": f"{self.size}'d{self.value}"}
 
 
 # endregion
@@ -448,7 +482,22 @@ class Maker64(_TCComponent):
 
 # region Memory
 
-# class BitMemory(_NeedsClock):
+class SRLatch(_TCComponent):
+    pins = [
+        _In("s", (-1, -1), 1),
+        _In("r", (-1, 1), 1),
+        _Out("q", (1, -1), 1),
+        _Out("qn", (1, 1), 1),
+    ]
+
+
+class BitMemory(_NeedsClock):
+    pins = [
+        _InSquare("save", (-1, -1), 1),
+        _InSquare("in", (-1, 1), 1),
+        _Out("out", (1, 0), 1),
+    ]
+
 
 @_generate_sizes()
 class _Counter(_NeedsClock):
@@ -464,7 +513,7 @@ class _Counter(_NeedsClock):
 
     @property
     def parameters(self):
-        return f".count({self.size}'d{self.value})"
+        return {"count": f"{self.size}'d{self.value}"}
 
 
 @_generate_sizes()
@@ -477,11 +526,11 @@ class _Register(_NeedsClock):
     ]
 
 
-@_generate_sizes()
+@_generate_sizes(1, 8, 16, 32, 64)
 class _DelayLine(_NeedsClock):
     pins = [
-        _InSquare("in", (_size(-1, - 2, -2, - 3), 0), _size),
-        _Out("out", (_size(1, 2, 2, 3), 0), _size),
+        _InSquare("in", (_size(-1, -1, - 2, -2, - 3), 0), _size),
+        _Out("out", (_size(1, 1, 2, 2, 3), 0), _size),
     ]
 
 
@@ -495,12 +544,209 @@ class Ram(_NeedsClock):
     ]
 
 
+class Stack(_NeedsClock):
+    pins = [
+        _In("pop", (-13, -7), 1),
+        _InSquare("push", (-13, -6), 1),
+        _InSquare("in", (-13, -5), 8),
+        _Out("out", (13, -7), 8),
+    ]
+
+
+class FastRam(_NeedsClock):
+    pins = [
+        _In("load", (-13, -7), 1),
+        _InSquare("save", (-13, -6), 1),
+        _In("address", (-13, -5), 16),
+        _InSquare("in0", (-13, -4), 64),
+        _InSquare("in1", (-13, -3), 64),
+        _InSquare("in2", (-13, -2), 64),
+        _InSquare("in3", (-13, -1), 64),
+        _OutTri("out0", (13, -7), 64),
+        _OutTri("out1", (13, -6), 64),
+        _OutTri("out2", (13, -5), 64),
+        _OutTri("out3", (13, -4), 64),
+    ]
+
+    @property
+    def word_size(self) -> _Size:
+        return 8 * (2 ** int(self.custom_string.split(':')[1]))
+
+    @property
+    def byte_count(self) -> int:
+        return int(self.custom_string.split(':')[0])
+
+    @property
+    def word_count(self):
+        return (self.byte_count + self.word_size - 1) // self.word_size  # ceil division
+
+    @property
+    def parameters(self):
+        return {
+            'BIT_WIDTH': self.word_size,
+            'MEM_WORDS': self.word_count,
+
+        }
+
+
+class CheapRam(FastRam):
+    verilog_name = "FastRam"
+
+
+class CheapRamLat(_NeedsClock):
+    pins = [
+        _InSquare("load", (-13, -7), 1),
+        _InSquare("save", (-13, -6), 1),
+        _InSquare("address", (-13, -5), 16),
+        _InSquare("in0", (-13, -4), 64),
+        _InSquare("in1", (-13, -3), 64),
+        _InSquare("in2", (-13, -2), 64),
+        _InSquare("in3", (-13, -1), 64),
+        _OutTri("ready", (13, -7), 1),
+        _OutTri("out0", (13, -6), 64),
+        _OutTri("out1", (13, -5), 64),
+        _OutTri("out2", (13, -4), 64),
+        _OutTri("out3", (13, -3), 64),
+    ]
+
+
+class Rom(_NeedsClock):
+    pins = [
+        _In("load", (-13, -7), 1),
+        _InSquare("save", (-13, -6), 1),
+        _In("address", (-13, -5), 16),
+        _InSquare("in", (-13, -4), 64),
+        _OutTri("out", (13, -7), 64),
+    ]
+
+    @property
+    def word_size(self) -> _Size:
+        return 8 * (2 ** int(self.custom_string.split(':')[1]))
+
+    @property
+    def byte_count(self) -> int:
+        return int(self.custom_string.split(':')[0])
+
+    @property
+    def word_count(self):
+        return (self.byte_count + self.word_size - 1) // self.word_size  # ceil division
+
+    @property
+    def parameters(self):
+        return {
+            'BIT_WIDTH': self.word_size,
+            'MEM_WORDS': self.word_count,
+            'ARG_SIG': f'"HEX_FILE_{self.name_id}=%s"',
+            'HEX_FILE': self.default_file_name,
+
+        }
+
+    @property
+    def default_file_name(self):
+        return f'{self.name_id}.s{self.byte_count}.m{self.word_size}'
+
+    @property
+    def memory_files(self):
+        yield ComponentMemoryFile(self.default_file_name, self.word_size, self.word_count, f"{self.permanent_id}.rom")
+
+
+class Hdd(_NeedsClock):
+    pins = [
+        _In("seek", (-13, -7), 8),
+        _In("load", (-13, -6), 1),
+        _InSquare("save", (-13, -5), 1),
+        _InSquare("in", (-13, -4), 64),
+        _OutTri("out", (13, -7), 64),
+    ]
+
+    @property
+    def word_count(self):
+        return int(self.custom_string) if self.custom_string else 256
+
+    @property
+    def parameters(self):
+        return {
+            'MEM_WORDS': self.word_count,
+            'ARG_SIG': f'"HEX_FILE_{self.name_id}=%s"',
+            'HEX_FILE': f'"{self.default_file_name}"',
+        }
+
+    @property
+    def default_file_name(self):
+        return f'{self.name_id}.s{self.word_count}.m64'
+
+    @property
+    def memory_files(self):
+        yield ComponentMemoryFile(self.default_file_name, 64, self.word_count, f"{self.permanent_id}.hdd")
+
+
+class DualLoadRam(_NeedsClock):
+    pins = [
+        _In("load0", (-13, -7), 1),
+        _InSquare("save", (-13, -6), 1),
+        _In("address0", (-13, -5), 16),
+        _InSquare("in", (-13, -4), 64),
+        _In("load1", (-13, -3), 1),
+        _In("address1", (-13, -2), 16),
+        _OutTri("out0", (13, -7), 64),
+        _OutTri("out1", (13, -6), 64),
+    ]
+
+    @property
+    def word_size(self) -> _Size:
+        return 8 * (2 ** int(self.custom_string.split(':')[1]))
+
+    @property
+    def byte_count(self) -> int:
+        return int(self.custom_string.split(':')[0])
+
+    @property
+    def word_count(self):
+        return (self.byte_count + self.word_size - 1) // self.word_size  # ceil division
+
+    @property
+    def parameters(self):
+        return {
+            'BIT_WIDTH': self.word_size,
+            'MEM_WORDS': self.word_count,
+
+        }
+
+
+# endregion
+
+# region IO Components
+
+
+class Clock(_TCComponent):
+    pins = [
+        _In("en", (0, -1), 1),
+        _OutTri("out", (1, 0), 64),
+    ]
+
+
 # noinspection PyPep8Naming
 class Program8_1(_NeedsClock):
     pins = [
         _In("address", (-13, -7), 8),
         _Out("out", (13, -7), 8),
     ]
+
+    @property
+    def parameters(self):
+        return {
+            "MEM_BYTES": 256,
+            "ARG_SIG": f'"HEX_FILE_{self.name_id}=%s"',
+            "HEX_FILE": f'"{self.default_file_name}"',
+        }
+
+    @property
+    def default_file_name(self):
+        return f'{self.name_id}.s256.m8'
+
+    @property
+    def memory_files(self):
+        yield MemoryFile(self.default_file_name, 8, 256)
 
 
 # noinspection PyPep8Naming
@@ -512,6 +758,102 @@ class Program8_4(_NeedsClock):
         _Out("out2", (13, -5), 8),
         _Out("out3", (13, -4), 8),
     ]
+
+    @property
+    def parameters(self):
+        return {
+            "MEM_BYTES": 256,
+            "ARG_SIG": f'"HEX_FILE_{self.name_id}=%s"',
+            "HEX_FILE": f'"{self.default_file_name}"',
+        }
+
+    @property
+    def default_file_name(self):
+        return f'{self.name_id}.s256.m8'
+
+    @property
+    def memory_files(self):
+        yield MemoryFile(self.default_file_name, 8, 256)
+
+
+class ProgramWord(_NeedsClock):
+    pins = [
+        _In("address", (-13, -7), 16),
+        _Out("out0", (13, -7), 8),
+        _Out("out1", (13, -6), 8),
+        _Out("out2", (13, -5), 8),
+        _Out("out3", (13, -4), 8),
+    ]
+
+    @property
+    def word_size(self) -> _Size:
+        return 8 * (2 ** int(self.custom_string or 1))
+
+    @property
+    def parameters(self):
+        return {
+            "BIT_WIDTH": self.word_size,
+            "MEM_WORDS": 0,
+            "ARG_SIG": f'"HEX_FILE_{self.name_id}=%s"',
+            "HEX_FILE": f'"{self.default_file_name}"',
+        }
+
+    @property
+    def default_file_name(self):
+        return f'{self.name_id}.s65536.m{self.word_size}'
+
+    @property
+    def memory_files(self):
+        yield MemoryFile(self.default_file_name, self.word_size, 0)
+
+
+class FileRom(_NeedsClock):
+    pins = [
+        _In("en", (-3, -1), 1),
+        _In("address", (-4, 0), 64),
+        _OutTri("out", (4, 0), 64),
+    ]
+
+    @cached_property
+    def configured_path(self) -> Path | None:
+        p = translate_path(self.custom_string)
+        if p.exists():
+            return p
+        else:
+            return None
+
+    @property
+    def file_size(self) -> int:
+        p = self.configured_path
+        if p is None:
+            return 0
+        else:
+            return p.stat().st_size
+
+    @property
+    def parameters(self):
+        return {
+            "MEM_BYTES": 256,
+            "ARG_SIG": f'"HEX_FILE_{self.name_id}=%s"',
+            "HEX_FILE": f'"{self.default_file_name}"',
+            "FILE_BYTES": self.file_size,
+        }
+
+    @property
+    def default_file_name(self):
+        return f'{self.name_id}.file_rom.m8'
+
+    @property
+    def memory_files(self):
+        p = self.configured_path
+        if p is None:
+            yield MemoryFile(self.default_file_name, 8, 0)
+        else:
+            yield FileRomMemoryFile(self.default_file_name, 8, self.file_size, p)
+
+
+class Halt(_TCComponent):
+    pins = [_In("en", (-1, 0), 1)]
 
 
 # endregion

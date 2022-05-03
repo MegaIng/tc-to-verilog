@@ -38,7 +38,7 @@ logxen> almost everything now has a size parameter to control its bit width. exc
 | VirtualRam              |                |                 |       |
 | DELETED_0               |                |                 |       |
 | DELETED_1               |                |                 |       |
-| Stack                   | (later)        |               * |       |
+| Stack                   | (later)        | yes             | yes   |
 | VirtualStack            |                |                 |       |
 | Register8               | yes            | yes             | yes   |
 | VirtualRegister8        |                |                 |       |
@@ -68,17 +68,17 @@ logxen> almost everything now has a size parameter to control its bit width. exc
 | Splitter64              | (maybe)        | yes             | yes   |
 | Maker64                 | (maybe)        | yes             | yes   |
 | FullAdder               | yes            | yes             | yes   |
-| BitMemory               | yes            |                 |       |
+| BitMemory               | yes            | yes             | yes   |
 | VirtualBitMemory        |                |                 |       |
-| SRLatch                 | yes            | yes *1          |       |
+| SRLatch                 | yes            | yes *1          | yes   |
 | Decoder2                | yes            | yes             | yes   |
-| Clock                   | (later)        | yes             |       |
+| Clock                   | (later)        | yes             | yes   |
 | WaveformGenerator       | (later)        | *2              |       |
 | DELETED_4               |                |                 |       |
 | DELETED_5               |                |                 |       |
 | Keypad                  |                |                 |       |
-| FileRom                 |                | yes             |       |
-| Halt                    | (maybe)        | yes             |       |
+| FileRom                 |                | yes             | yes   |
+| Halt                    | (maybe)        | yes             | yes   |
 | WireCluster             |                |                 |       |
 | Screen                  |                |                 |       |
 | Program8_1              | (later)        | yes             | yes   |
@@ -111,7 +111,7 @@ logxen> almost everything now has a size parameter to control its bit width. exc
 | InputOutput             |                |                 |       |
 | Custom                  |                |                 |       |
 | VirtualCustom           |                |                 |       |
-| ProgramWord             | (later)        | yes             |       |
+| ProgramWord             | (later)        | yes             | yes   |
 | DelayLine1              | yes            | yes             | yes   |
 | VirtualDelayLine1       |                |                 |       |
 | Console                 | (later)        | *2              |       |
@@ -217,13 +217,13 @@ logxen> almost everything now has a size parameter to control its bit width. exc
 | Nand64                  | yes            | yes             | yes   |
 | Nor64                   | yes            | yes             | yes   |
 | Xnor64                  | yes            | yes             | yes   |
-| CheapRam                | (later)        | -> FastRam      |       |
+| CheapRam                | (later)        | -> FastRam      | yes   |
 | VirtualCheapRam         |                |                 |       |
-| CheapRamLat             | (later)        | yes             |       |
+| CheapRamLat             | (later)        | yes             | yes   |
 | VirtualCheapRamLat      |                |                 |       |
-| FastRam                 | (later)        | yes             |       |
+| FastRam                 | (later)        | yes             | yes   |
 | VirtualFastRam          |                |                 |       |
-| Rom                     | (later)        | yes             |       |
+| Rom                     | (later)        | yes             | yes   |
 | VirtualRom              |                |                 |       |
 | SolutionRom             |                |                 |       |
 | VirtualSolutionRom      |                |                 |       |
@@ -235,7 +235,7 @@ logxen> almost everything now has a size parameter to control its bit width. exc
 | VirtualDelayLine32      |                |                 |       |
 | DelayLine64             | yes            | yes             | yes   |
 | VirtualDelayLine64      |                |                 |       |
-| DualLoadRam             | (later)        | yes             |       |
+| DualLoadRam             | (later)        | yes             | yes   |
 | VirtualDualLoadRam      |                |                 |       |
-| Hdd                     | (later)        |               * |       |
+| Hdd                     | (later)        | yes             | yes   |
 | VirtualHdd              |                |                 |       |

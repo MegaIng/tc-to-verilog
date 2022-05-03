@@ -12,22 +12,19 @@ module TC_Decoder3 (dis, sel0, sel1, sel2, out0, out1, out2, out3, out4, out5, o
     output reg out6;
     output reg out7;
 
-    always @ (dis or {sel2, sel1, sel0})
+    always @ (dis or sel2 or sel1 or sel0)
     begin
-        if(dis)
-            out <= 8'b0000_0000;
-        else begin
-            case({sel2, sel1, sel0})
-            3'b000 : {out7, out6, out5, out4, out3, out2, out1, out0} =  8'b0000_0001;
-            3'b001 : {out7, out6, out5, out4, out3, out2, out1, out0} =  8'b0000_0010;
-            3'b010 : {out7, out6, out5, out4, out3, out2, out1, out0} =  8'b0000_0100;
-            3'b011 : {out7, out6, out5, out4, out3, out2, out1, out0} =  8'b0000_1000;
-            3'b100 : {out7, out6, out5, out4, out3, out2, out1, out0} =  8'b0001_0000;
-            3'b101 : {out7, out6, out5, out4, out3, out2, out1, out0} =  8'b0010_0000;
-            3'b110 : {out7, out6, out5, out4, out3, out2, out1, out0} =  8'b0100_0000;
-            3'b111 : {out7, out6, out5, out4, out3, out2, out1, out0} =  8'b1000_0000;
-            endcase
-        end
+        case({dis, sel2, sel1, sel0})
+        4'b0000 : {out7, out6, out5, out4, out3, out2, out1, out0} = 8'b0000_0001;
+        4'b0001 : {out7, out6, out5, out4, out3, out2, out1, out0} = 8'b0000_0010;
+        4'b0010 : {out7, out6, out5, out4, out3, out2, out1, out0} = 8'b0000_0100;
+        4'b0011 : {out7, out6, out5, out4, out3, out2, out1, out0} = 8'b0000_1000;
+        4'b0100 : {out7, out6, out5, out4, out3, out2, out1, out0} = 8'b0001_0000;
+        4'b0101 : {out7, out6, out5, out4, out3, out2, out1, out0} = 8'b0010_0000;
+        4'b0110 : {out7, out6, out5, out4, out3, out2, out1, out0} = 8'b0100_0000;
+        4'b0111 : {out7, out6, out5, out4, out3, out2, out1, out0} = 8'b1000_0000;
+        default : {out7, out6, out5, out4, out3, out2, out1, out0} = 8'b0000_0000;
+        endcase
     end 
 endmodule
 

@@ -1,4 +1,4 @@
-module TC_Maker8 (in, out0, out1, out2, out3, out4, out5, out6, out7);
+module TC_Splitter8 (in, out0, out1, out2, out3, out4, out5, out6, out7);
     input [7:0] in;
     output out0;
     output out1;
