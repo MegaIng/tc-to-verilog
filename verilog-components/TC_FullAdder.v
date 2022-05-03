@@ -1,4 +1,4 @@
-module TC_FullAdder (in0, in1, ci, out, co)
+module TC_FullAdder (in0, in1, ci, out, co);
     input in0;
     input in1;
     input ci;
