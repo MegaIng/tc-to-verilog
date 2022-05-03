@@ -16,6 +16,19 @@ class Wire:
     sources: list[tuple[TCComponent, TCPin, int]]
     targets: list[tuple[TCComponent, TCPin, int]]
 
+    @property
+    def subwires(self):
+        if len(self.sources) > 1:
+            return [self.name, *(f"{self.name}_{i}" for i in range(len(self.sources)))]
+        else:
+            return [self.name]
+
+    def name_for(self, desc: tuple[TCComponent, TCPin]):
+        for i, (tcc, tcp, _) in enumerate(self.sources):
+            if desc == (tcc, tcp):
+                return f"{self.name}_{i}"
+        raise ValueError(desc)
+
 
 class VerilogBuilder:
     pass
@@ -58,15 +71,21 @@ class VerilogModule:
 
     def _build_wires(self):
         wires = [
-            f"wire [{wire.size - 1}:0] {wire.name};"
+            f"wire [{wire.size - 1}:0] {name};"
             for wire in self.wires_by_name.values()
+            for name in wire.subwires
         ]
-        return "\n    ".join(wires)
+        tri_state_wires = [
+            f"assign {wire.name} = {' | '.join(wire.subwires[1:])};"
+            for wire in self.wires_by_name.values()
+            if len(wire.sources) > 1
+        ]
+        return "\n    ".join(wires), "\n     ".join(tri_state_wires)
 
-    def _connect_wire_port(self, wire: Wire, pin: TCPin, pin_name):
+    def _connect_wire_port(self, wire: Wire, pin: TCPin, pin_name, desc):
         if isinstance(pin, In):
             target, source = wire, pin
-            target_name = wire.name
+            target_name = wire.name_for(desc)
         else:
             target, source = pin, wire
             target_name = pin_name
@@ -91,7 +110,7 @@ class VerilogModule:
             else:
                 ports.append((name, f"output wire [{pin.size - 1}:0]"))
             if wire:
-                port_wires.append(self._connect_wire_port(wire, pin, name))
+                port_wires.append(self._connect_wire_port(wire, pin, name, (com, pin)))
         return (
             ", ".join(n for n, _ in ports),
             self._line_sep.join(f'{t} {n};' for n, t in ports),
@@ -103,7 +122,7 @@ class VerilogModule:
             return ""
         return f" # ({', '.join(f'.{n}({v})' for n, v in component.parameters.items())})"
 
-    def _connect_wire_submodule(self, wire: Wire, port: TCPin):
+    def _connect_wire_submodule(self, wire: Wire, port: TCPin, comp):
         if isinstance(port, In):
             if port.size > wire.size:
                 value = f"{{{{{port.size - wire.size}{{1'b0}}}}, {wire.name}}}"
@@ -115,15 +134,15 @@ class VerilogModule:
             if port.size > wire.size:
                 raise ValueError("This should never happen; the wires should be large enough to accommodate all inputs")
             elif port.size == wire.size:
-                value = wire.name
+                value = wire.name_for((comp, port))
             else:
-                value = f"{wire.name}[{port.size-1}:0]"
+                value = f"{wire.name_for((comp, port))}[{port.size-1}:0]"
         value = f".{port.name}({value})"
         return value
 
     def _build_submodule(self, component: TCComponent):
         arguments = [
-            self._connect_wire_submodule(self.wires_by_position[pos], p)
+            self._connect_wire_submodule(self.wires_by_position[pos], p, component)
             if t else f".{p.name}({p.size}'d0)"
             for pos, p in component.positioned_pins
             if (t := (pos in self.wires_by_position)) or isinstance(p, In)
@@ -147,7 +166,7 @@ class VerilogModule:
     def full_verilog(self) -> str:
         module_name = self.module_name
         port_names, port_decls, port_wires_assigns = self._build_ports()
-        wire_declarations = self._build_wires()
+        wire_declarations, tri_state_joins = self._build_wires()
         sub_modules = self._build_submodules()
         return f"""
 module {module_name}(
@@ -156,6 +175,8 @@ module {module_name}(
     {port_decls}
 
     {wire_declarations}
+    
+    {tri_state_joins}
 
     {port_wires_assigns}
 
