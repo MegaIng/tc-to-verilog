@@ -24,10 +24,13 @@ class Wire:
             return [self.name]
 
     def name_for(self, desc: tuple[TCComponent, TCPin]):
-        for i, (tcc, tcp, _) in enumerate(self.sources):
-            if desc == (tcc, tcp):
-                return f"{self.name}_{i}"
-        raise ValueError(desc)
+        if len(self.sources) > 1:
+            for i, (tcc, tcp, _) in enumerate(self.sources):
+                if desc == (tcc, tcp):
+                    return f"{self.name}_{i}"
+            raise ValueError(desc)
+        else:
+            return self.name
 
 
 class VerilogBuilder:
@@ -55,7 +58,7 @@ class VerilogModule:
             targets = [p[1] for p in group if isinstance(p[1][1], (In))]
             assert len(group) == len(sources) + len(targets), (group)
             sizes = {p[1].size for p in sources}
-            size = max(sizes)
+            size = max(sizes, default=1)
             wire = wires_by_name[f"wire{i}"] = Wire(f"wire{i}", size, sources, targets)
             for pos, _ in group:
                 wires_by_position[pos] = wire
