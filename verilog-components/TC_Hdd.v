@@ -1,6 +1,6 @@
 module TC_Hdd (clk, rst, seek, load, save, in, out);
-    parameter MEM_WORDS = 256;
-    parameter HEX_FILE = "test_jumps.mem";
+    parameter BIT_DEPTH = 256;
+    //parameter HEX_FILE = "test_jumps.mem";
     parameter ARG_SIG = "HEX_FILE=%s";
     reg [1024*8:0] hexfile;
     input clk;
@@ -11,18 +11,46 @@ module TC_Hdd (clk, rst, seek, load, save, in, out);
     input [63:0] in;
     output [63:0] out;
     
-    reg [63:0] mem [0:MEM_WORDS-1];
+    reg [63:0] mem [0:BIT_DEPTH-1];
     reg [63:0] mp;
     
     initial begin
-        hexfile <= HEX_FILE;
-        if ($value$plusargs(ARG_SIG, hexfile)) begin
-            $display("loading %0s", hexfile);
-            $readmemh(hexfile, mem);
+        //hexfile <= HEX_FILE;
+        i = ($value$plusargs(ARG_SIG, hexfile));
+        $display("loading %0s", hexfile);
+        fd = $fopen(hexfile, "r");
+        if (fd) begin
+            i = 0;
+            while (i < BIT_DEPTH && !$feof(fd)) begin
+                mem[i][7:0] = $fgetc(fd);
+                if (!$feof(fd)) begin
+                    mem[i][15:8] = $fgetc(fd);
+                    if (!$feof(fd)) begin
+                        mem[i][23:16] = $fgetc(fd);
+                        if (!$feof(fd)) begin
+                            mem[i][31:24] = $fgetc(fd);
+                            if (!$feof(fd)) begin
+                                mem[i][39:32] = $fgetc(fd);
+                                if (!$feof(fd)) begin
+                                    mem[i][47:40] = $fgetc(fd);
+                                    if (!$feof(fd)) begin
+                                        mem[i][55:48] = $fgetc(fd);
+                                        if (!$feof(fd)) begin
+                                            mem[i][63:56] = $fgetc(fd);
+                                        end
+                                    end
+                                end
+                            end
+                        end
+                    end
+                end
+                i = i + 1;
+            end
+            $display("read %d bytes", i);
         end else begin
-            $display("no file specified");
-            for (i=0; i<MEM_WORDS; i=i+1) mem[i] <= {BIT_WIDTH{1'b0}};
+            $display("file not found");
         end
+        $fclose(fd);
         out = {64{1'b0}};
     end
 

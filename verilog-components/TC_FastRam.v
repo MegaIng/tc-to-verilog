@@ -1,6 +1,6 @@
 module TC_FastRam (clk, rst, load, save, address, in0, in1, in2, in3, out0, out1, out2, out3);
     parameter BIT_WIDTH = 16;
-    parameter MEM_WORDS = 256;
+    parameter BIT_DEPTH = 256;
     input clk;
     input rst;
     input load;
@@ -15,12 +15,12 @@ module TC_FastRam (clk, rst, load, save, address, in0, in1, in2, in3, out0, out1
     output reg [63:0] out2;
     output reg [63:0] out3;
     
-    reg [BIT_WIDTH-1:0] mem [0:MEM_WORDS];
+    reg [BIT_WIDTH-1:0] mem [0:BIT_DEPTH];
     
     integer i;
     
     initial begin
-        for (i=0; i<MEM_WORDS; i=i+1) mem[i] <= {BIT_WIDTH{1'b0}};
+        for (i=0; i<BIT_DEPTH; i=i+1) mem[i] <= {BIT_WIDTH{1'b0}};
         out0 <= {64{1'b0}};
         out1 <= {64{1'b0}};
         out2 <= {64{1'b0}};
@@ -53,7 +53,7 @@ module TC_FastRam (clk, rst, load, save, address, in0, in1, in2, in3, out0, out1
     end
     always @ (negedge clk) begin
         if (rst)
-            for (i=0; i<MEM_WORDS; i=i+1) mem[i] <= {BIT_WIDTH{1'b0}};
+            for (i=0; i<BIT_DEPTH; i=i+1) mem[i] <= {BIT_WIDTH{1'b0}};
         else if (save) begin
             if (BIT_WIDTH < 64)
                 mem[address] <= in0[BIT_WIDTH-1:0];

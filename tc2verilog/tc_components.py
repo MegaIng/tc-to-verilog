@@ -584,7 +584,7 @@ class FastRam(_NeedsClock):
     def parameters(self):
         return {
             'BIT_WIDTH': self.word_size,
-            'MEM_WORDS': self.word_count,
+            'BIT_DEPTH': self.word_count,
 
         }
 
@@ -635,7 +635,7 @@ class Rom(_NeedsClock):
     def parameters(self):
         return {
             'BIT_WIDTH': self.word_size,
-            'MEM_WORDS': self.word_count,
+            'BIT_DEPTH': self.word_count,
             'ARG_SIG': f'"HEX_FILE_{self.name_id}=%s"',
             'HEX_FILE': self.default_file_name,
 
@@ -666,7 +666,7 @@ class Hdd(_NeedsClock):
     @property
     def parameters(self):
         return {
-            'MEM_WORDS': self.word_count,
+            'BIT_DEPTH': self.word_count,
             'ARG_SIG': f'"HEX_FILE_{self.name_id}=%s"',
             'HEX_FILE': f'"{self.default_file_name}"',
         }
@@ -708,7 +708,7 @@ class DualLoadRam(_NeedsClock):
     def parameters(self):
         return {
             'BIT_WIDTH': self.word_size,
-            'MEM_WORDS': self.word_count,
+            'BIT_DEPTH': self.word_count,
 
         }
 
@@ -735,7 +735,7 @@ class Program8_1(_NeedsClock):
     @property
     def parameters(self):
         return {
-            "MEM_BYTES": 256,
+            "BIT_DEPTH": 256,
             "ARG_SIG": f'"HEX_FILE_{self.name_id}=%s"',
             "HEX_FILE": f'"{self.default_file_name}"',
         }
@@ -762,7 +762,7 @@ class Program8_4(_NeedsClock):
     @property
     def parameters(self):
         return {
-            "MEM_BYTES": 256,
+            "BIT_DEPTH": 256,
             "ARG_SIG": f'"HEX_FILE_{self.name_id}=%s"',
             "HEX_FILE": f'"{self.default_file_name}"',
         }
@@ -793,7 +793,7 @@ class ProgramWord(_NeedsClock):
     def parameters(self):
         return {
             "BIT_WIDTH": self.word_size,
-            "MEM_WORDS": 0,
+            "BIT_DEPTH": 0,
             "ARG_SIG": f'"HEX_FILE_{self.name_id}=%s"',
             "HEX_FILE": f'"{self.default_file_name}"',
         }
@@ -833,7 +833,7 @@ class FileRom(_NeedsClock):
     @property
     def parameters(self):
         return {
-            "MEM_BYTES": 256,
+            "BIT_DEPTH": 256,
             "ARG_SIG": f'"HEX_FILE_{self.name_id}=%s"',
             "HEX_FILE": f'"{self.default_file_name}"',
             "FILE_BYTES": self.file_size,
