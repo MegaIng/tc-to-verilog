@@ -1,11 +1,11 @@
 module TC_FileRom (clk, rst, en, address, out);
     parameter BIT_WIDTH = 8;
     parameter MEM_BYTES = 302;
-    parameter HEX_FILE = "test_jumps.mem";
+    //parameter HEX_FILE = "test_jumps.mem";
     parameter ARG_SIG = "HEX_FILE=%s";
-    parameter FILE_BYTES = 302;
+    //parameter FILE_BYTES = 302;
     reg [1024*8:0] hexfile;
-    integer filebytes;
+    //integer filebytes;
     input clk;
     input rst;
     input en;
@@ -13,22 +13,29 @@ module TC_FileRom (clk, rst, en, address, out);
     output reg [63:0] out;
 
     reg [7:0] mem [0:MEM_BYTES];
-    integer fid;
+    integer fd;
     integer fsize;
     integer data;
     integer i;
     
     initial begin
-        hexfile = HEX_FILE;
-        filebytes = FILE_BYTES;
+        //hexfile = HEX_FILE;
+        //filebytes = FILE_BYTES;
 
-        if ($value$plusargs(ARG_SIG, hexfile)) begin
-            $display("loading %0s", hexfile);
-            $readmemh(hexfile, mem);
+        i = ($value$plusargs(ARG_SIG, hexfile));
+        $display("loading %0s", hexfile);
+        fd = $fopen(hexfile, "r");
+        if (fd) begin
+            i = 0;
+            while (!$feof(fd) && i < MEM_BYTES) begin
+                mem[i] = $fgetc(fd);
+                i = i + 1;
+            end
+            $display("read %d bytes", i);
         end else begin
-            $display("no file specified");
-            for (i=0; i<MEM_BYTES; i=i+1) mem[i] <= {BIT_WIDTH{1'b0}};
+            $display("file not found");
         end
+        $fclose(fd);
         out = {64{1'b0}};
 
         //fid = $fopen(hexfile, "rb");
