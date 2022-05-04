@@ -1,6 +1,6 @@
 module TC_Program8_1 (clk, rst, address, out);
     parameter BIT_DEPTH = 256;
-    //parameter HEX_FILE = "test_jumps.mem";
+    parameter HEX_FILE = "test_jumps.mem";
     parameter ARG_SIG = "HEX_FILE=%s";
     reg [1024*8:0] hexfile;
     input clk;
@@ -14,7 +14,8 @@ module TC_Program8_1 (clk, rst, address, out);
     integer i;
 
     initial begin
-        //hexfile <= HEX_FILE;
+        hexfile = HEX_FILE;
+        $display("param %0s", hexfile);
         i = ($value$plusargs(ARG_SIG, hexfile));
         $display("loading %0s", hexfile);
         fd = $fopen(hexfile, "r");

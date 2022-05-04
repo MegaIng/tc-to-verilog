@@ -1,7 +1,7 @@
 module TC_FileRom (clk, rst, en, address, out);
     parameter BIT_WIDTH = 8;
     parameter BIT_DEPTH = 302;
-    //parameter HEX_FILE = "test_jumps.mem";
+    parameter HEX_FILE = "test_jumps.mem";
     parameter ARG_SIG = "HEX_FILE=%s";
     //parameter FILE_BYTES = 302;
     reg [1024*8:0] hexfile;
@@ -19,7 +19,7 @@ module TC_FileRom (clk, rst, en, address, out);
     integer i;
     
     initial begin
-        //hexfile = HEX_FILE;
+        hexfile = HEX_FILE;
         //filebytes = FILE_BYTES;
 
         i = ($value$plusargs(ARG_SIG, hexfile));
