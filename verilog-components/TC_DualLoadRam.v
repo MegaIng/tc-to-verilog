@@ -1,6 +1,6 @@
 module TC_DualLoadRam (clk, rst, load0, save, address0, in, load1, address1, out0, out1);
     parameter BIT_WIDTH = 16;
-    parameter MEM_WORDS = 256;
+    parameter BIT_DEPTH = 256;
     input clk;
     input rst;
     input load0;
@@ -12,10 +12,10 @@ module TC_DualLoadRam (clk, rst, load0, save, address0, in, load1, address1, out
     output [BIT_WIDTH-1:0] out0;
     output [BIT_WIDTH-1:0] out1;
 
-    reg [BIT_WIDTH-1:0] mem [0:MEM_WORDS];
+    reg [BIT_WIDTH-1:0] mem [0:BIT_DEPTH];
 
     initial begin
-        for (i=0; i<MEM_WORDS; i=i+1) mem[i] <= {BIT_WIDTH{1'b0}};
+        for (i=0; i<BIT_DEPTH; i=i+1) mem[i] <= {BIT_WIDTH{1'b0}};
         out0 <= {64{1'b0}};
         out1 <= {64{1'b0}};
     end
@@ -34,7 +34,7 @@ module TC_DualLoadRam (clk, rst, load0, save, address0, in, load1, address1, out
     end
     always @ (negedge clk) begin
         if (rst)
-            for (i=0; i<MEM_WORDS; i=i+1) mem[i] <= {BIT_WIDTH{1'b0}};
+            for (i=0; i<BIT_DEPTH; i=i+1) mem[i] <= {BIT_WIDTH{1'b0}};
         else if (save)
             mem[address0] <= in;
     end

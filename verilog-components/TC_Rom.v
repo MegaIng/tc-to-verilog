@@ -1,6 +1,6 @@
 module TC_Rom (clk, rst, load, save, address, in, out);
     parameter BIT_WIDTH = 16;
-    parameter MEM_WORDS = 256;
+    parameter BIT_DEPTH = 256;
     //parameter HEX_FILE = "test_jumps.mem";
     parameter ARG_SIG = "HEX_FILE=%s";
     reg [1024*8:0] hexfile;
@@ -12,7 +12,7 @@ module TC_Rom (clk, rst, load, save, address, in, out);
     input [BIT_WIDTH-1:0] in;
     output reg [BIT_WIDTH-1:0] out;
 
-    reg [BIT_WIDTH-1:0] mem [0:MEM_WORDS];
+    reg [BIT_WIDTH-1:0] mem [0:BIT_DEPTH];
     
     integer fd;
     integer i;
@@ -24,7 +24,7 @@ module TC_Rom (clk, rst, load, save, address, in, out);
         fd = $fopen(hexfile, "r");
         if (fd) begin
             i = 0;
-            while (i < MEM_BYTES && !$feof(fd)) begin
+            while (i < BIT_DEPTH && !$feof(fd)) begin
                 mem[i][7:0] = $fgetc(fd);
                 if (BIT_WIDTH > 8 && !$feof(fd)) begin
                     mem[i][15:8] = $fgetc(fd);

@@ -1,6 +1,6 @@
 module TC_ProgramWord (clk, rst, address, out0, out1, out2, out3);
     parameter BIT_WIDTH = 16;
-    parameter MEM_WORDS = 256;
+    parameter BIT_DEPTH = 256;
     //parameter HEX_FILE = "test_jumps.mem";
     parameter ARG_SIG = "HEX_FILE=%s";
     reg [1024*8:0] hexfile;
@@ -12,7 +12,7 @@ module TC_ProgramWord (clk, rst, address, out0, out1, out2, out3);
     output reg [BIT_WIDTH-1:0] out2;
     output reg [BIT_WIDTH-1:0] out3;
 
-    reg [BIT_WIDTH-1:0] mem [0:MEM_WORDS];
+    reg [BIT_WIDTH-1:0] mem [0:BIT_DEPTH];
     
     integer fd;
     integer i;
@@ -24,7 +24,7 @@ module TC_ProgramWord (clk, rst, address, out0, out1, out2, out3);
         fd = $fopen(hexfile, "r");
         if (fd) begin
             i = 0;
-            while (i < MEM_BYTES && !$feof(fd)) begin
+            while (i < BIT_DEPTH && !$feof(fd)) begin
                 mem[i][7:0] = $fgetc(fd);
                 if (BIT_WIDTH > 8 && !$feof(fd)) begin
                     mem[i][15:8] = $fgetc(fd);

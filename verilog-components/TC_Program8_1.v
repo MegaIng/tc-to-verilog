@@ -1,5 +1,5 @@
 module TC_Program8_1 (clk, rst, address, out);
-    parameter MEM_BYTES = 256;
+    parameter BIT_DEPTH = 256;
     //parameter HEX_FILE = "test_jumps.mem";
     parameter ARG_SIG = "HEX_FILE=%s";
     reg [1024*8:0] hexfile;
@@ -8,7 +8,7 @@ module TC_Program8_1 (clk, rst, address, out);
     input [7:0] address;
     output reg [7:0] out;
 
-    reg [7:0] mem [0:MEM_BYTES];
+    reg [7:0] mem [0:BIT_DEPTH];
 	 
     integer fd;
     integer i;
@@ -20,7 +20,7 @@ module TC_Program8_1 (clk, rst, address, out);
         fd = $fopen(hexfile, "r");
         if (fd) begin
             i = 0;
-            while (!$feof(fd) && i < MEM_BYTES) begin
+            while (!$feof(fd) && i < BIT_DEPTH) begin
                 mem[i] = $fgetc(fd);
                 i = i + 1;
             end
