@@ -1,4 +1,5 @@
 import os
+import re
 import sys
 from collections import defaultdict
 from dataclasses import dataclass
@@ -59,10 +60,17 @@ IGNORE_COMPONENTS = {
 }
 
 
+def normalize_name(name):
+    non_legal = r"[^a-zA-Z0-9_\$]"
+    name = re.sub(non_legal, "_", name)
+    return name
+
+
 @dataclass(eq=False)
 class TCSchematic:
     raw_nim_data: dict
-    io_mapping: dict[str, tuple[str, dict[str, str] | None]] | None = None
+    main_io_mapping: dict[str, tuple[str, dict[str, str] | None]] | None = None
+    cc_io_mapping: dict[str, str] | None = None
 
     @property
     def save_version(self):
@@ -97,10 +105,12 @@ class TCSchematic:
         return out
 
     @classmethod
-    def open_level(cls, level_name: str, save_name: str,
-                   io_mapping: dict[str, tuple[str, dict[str, str] | None]] = None):
+    def open_level(cls, level_name: str, save_name: str, *,
+                   main_io_mapping: dict[str, tuple[str, dict[str, str] | None]] = None,
+                   cc_io_mapping: dict[str, str] = None,
+                   ):
         return cls(save_monger.parse_state((SCHEMATICS / level_name / save_name / "circuit.data").read_bytes()),
-                   io_mapping)
+                   main_io_mapping, cc_io_mapping)
 
     @cached_property
     def wire_map(self) -> dict[tuple[int, int], set[tuple[int, int]]]:
@@ -134,17 +144,17 @@ class TCSchematic:
     @cached_property
     def named_io_com_by_name(self) -> dict[str, IOComponent]:
         out = {}
-        for com in self.components:
+        for i, com in enumerate(self.components):
             if isinstance(com, (IOComponent)):
                 if com.custom_string:
-                    name = com.custom_string.partition(":")[-1]
+                    name = normalize_name(com.custom_string.partition(':')[-1])
                 else:
                     name = f"{type(com).__name__}x{com.x % 512:03}y{com.y % 512:03}"
                 out[name] = com
-        if self.io_mapping is not None:
-            assert len(self.io_mapping) == len(out), (list(out), list(self.io_mapping))
+        if self.main_io_mapping is not None:
+            assert len(self.main_io_mapping) == len(out), (list(out), list(self.main_io_mapping))
             new_out = {}
-            for (base_name, (exp_io, _)), com in zip(self.io_mapping.items(), out.values()):
+            for (base_name, (exp_io, _)), com in zip(self.main_io_mapping.items(), out.values()):
                 assert exp_io == type(com).__name__, (exp_io, type(com).__name__)
                 new_out[base_name] = com
             out = new_out
@@ -155,10 +165,13 @@ class TCSchematic:
         out = {}
         for base_name, com in self.named_io_com_by_name.items():
             for pos, pin in com.positioned_pins:
-                if self.io_mapping is not None and self.io_mapping[base_name][1] is not None:
-                    name = self.io_mapping[base_name][1][pin.name]
+                if self.main_io_mapping is not None and self.main_io_mapping[base_name][1] is not None:
+                    name = self.main_io_mapping[base_name][1][pin.name]
                 else:
                     name = f"{base_name}_{pin.name}"
+                print(self.cc_io_mapping, name)
+                if self.cc_io_mapping is not None and name in self.cc_io_mapping:
+                    name = self.cc_io_mapping[name]
                 out[name] = com, pin, pos
         return out
 

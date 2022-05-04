@@ -34,8 +34,8 @@ class COND(CustomComponent, custom_id=2868461077671670126):
 class ALU(CustomComponent, custom_id=378087704930129977):
     pins = [
         In("Instruction", (-1, -1), 8),
-        In("Input 1", (-1, 0), 8),
-        In("Input 2", (-1, 1), 8),
+        In("Input_1", (-1, 0), 8),
+        In("Input_2", (-1, 1), 8),
         Out("Output", (2, 0), 8),
     ]
 
@@ -54,9 +54,9 @@ class RegisterPlus(CustomComponent, custom_id=688062441):
     pins = [
         In("Load", (-1, -1), 1),
         InSquare("Save", (-1, 0), 1),
-        InSquare("Save Value", (-1, 1), 8),
+        InSquare("Save_Value", (-1, 1), 8),
         OutTri("Output", (1, 0), 8),
-        Out("Always output", (1, 1), 8),
+        Out("Always_output", (1, 1), 8),
     ]
 
 
@@ -65,7 +65,7 @@ from tc2verilog.tc_schematics import CC_PATHS, _load_cc_meta
 
 _load_cc_meta()
 pprint(CC_PATHS)
-schematic = TCSchematic.open_level("architecture", "OVERTURE", {
+schematic = TCSchematic.open_level("architecture", "OVERTURE", main_io_mapping={
     "arch_out": ("Output1_1B", None),
     "arch_in": ("Input1_1B", None),
 })
@@ -75,8 +75,14 @@ output_verilog(Path("out", "OVERTURE"), "OVERTURE", schematic, SCHEMATICS / "arc
 
 for cid, cls in custom_component_classes.items():
     print(cls)
-    schematic = TCSchematic.open_level("component_factory", f"OVERTURE/{cls.__name__}")
-    output_verilog(Path("out", "OVERTURE"), f"TC_{schematic.custom_component_id}", schematic)
+    schematic = TCSchematic.open_level("component_factory", f"OVERTURE/{cls.__name__}", cc_io_mapping={
+        pin.name + "_value": pin.name
+        for pin in cls.pins
+    })
+    try:
+        output_verilog(Path("out", "OVERTURE"), f"TC_Custom_{schematic.custom_component_id}", schematic)
+    except Exception as e:
+        print(e)
 
 #
 # schematic = TCSchematic.open_level("component_factory/tc-to-veri", "test_constant")

@@ -89,16 +89,18 @@ class VerilogModule:
         if isinstance(pin, Out):
             target, source = wire, pin
             target_name = wire.name_for(desc)
+            source_name = pin_name
         else:
             target, source = pin, wire
             target_name = pin_name
+            source_name = wire.name
         if target.size > source.size:
-            value = f"{{{{{target.size - source.size}{{1'b0}}}}, {source.name}}}"
+            value = f"{{{{{target.size - source.size}{{1'b0}}}}, {source_name}}}"
         elif target.size == source.size:
-            value = source.name
+            value = source_name
         else:
-            value = f"{source.name}[{target.size - 1}:0]"
-        return f"assign {target_name} = {value}"
+            value = f"{source_name}[{target.size - 1}:0]"
+        return f"assign {target_name} = {value};"
 
     def _build_ports(self):
         ports = [("clk", "input wire"), ("rst", "input wire")]
