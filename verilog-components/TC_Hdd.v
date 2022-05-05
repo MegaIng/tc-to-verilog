@@ -1,6 +1,6 @@
 module TC_Hdd (clk, rst, seek, load, save, in, out);
     parameter BIT_DEPTH = 256;
-    //parameter HEX_FILE = "test_jumps.mem";
+    parameter HEX_FILE = "test_jumps.mem";
     parameter ARG_SIG = "HEX_FILE=%s";
     reg [1024*8:0] hexfile;
     input clk;
@@ -15,7 +15,7 @@ module TC_Hdd (clk, rst, seek, load, save, in, out);
     reg [63:0] mp;
     
     initial begin
-        //hexfile <= HEX_FILE;
+        hexfile = HEX_FILE;
         i = ($value$plusargs(ARG_SIG, hexfile));
         $display("loading %0s", hexfile);
         fd = $fopen(hexfile, "r");

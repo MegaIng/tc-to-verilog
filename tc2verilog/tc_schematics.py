@@ -7,7 +7,7 @@ from functools import cached_property
 from pathlib import Path
 from pprint import pprint
 
-from tc2verilog.base_tc_component import TCComponent, TCPin, IOComponent, Size
+from tc2verilog.base_tc_component import TCComponent, TCPin, IOComponent, Size, NeedsClock as _NeedsClock
 
 try:
     import nimporter
@@ -208,7 +208,7 @@ def _get_cc_schematic(cc_id):
 custom_component_classes = {}
 
 
-class CustomComponent(TCComponent):
+class CustomComponent(_NeedsClock):
     def __init_subclass__(cls, **kwargs):
         custom_component_classes[kwargs["custom_id"]] = cls
 
