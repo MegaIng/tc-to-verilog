@@ -203,4 +203,4 @@ def output_verilog(out_folder: Path, module_name: str, schematic: TCSchematic, s
     (out_folder / f"{module_name}.v").write_text(module.full_verilog())
 
     for file in module.memory_files():
-        (out_folder / file.out_file).write_text(file.get_hex_content(schematic_folder))
+        (out_folder / file.out_file).write_bytes(file.get_padded_content(schematic_folder))

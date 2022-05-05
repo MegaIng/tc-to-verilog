@@ -16,12 +16,16 @@ class MemoryFile:
     def get_raw_content(self, schematic_folder: Path) -> bytes:
         return b""
 
-    def get_hex_content(self, schematic_folder: Path):
+    def get_hex_content(self, schematic_folder: Path) -> str:
         stream = BytesIO()
         bin2coe.convert(stream, self.get_raw_content(schematic_folder),
                         self.word_size, self.word_count, 0, 16, mem=True)
         stream.seek(0)
         return stream.read().decode()
+
+    def get_padded_content(self, schematic_folder: Path) -> bytes:
+        data = self.get_raw_content(schematic_folder)
+        return data.rjust(self.word_size * self.word_count, b'\x00')
 
 
 @dataclass
