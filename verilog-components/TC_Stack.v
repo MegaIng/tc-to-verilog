@@ -1,4 +1,6 @@
 module TC_Stack (clk, rst, pop, push, in, out);
+    parameter UUID = 0;
+    parameter NAME = "";
     input clk;
     input rst;
     input pop;

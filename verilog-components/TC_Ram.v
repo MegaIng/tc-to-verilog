@@ -1,4 +1,6 @@
 module TC_Ram (clk, rst, load, save, address, in, out);
+    parameter UUID = 0;
+    parameter NAME = "";
     input clk;
     input rst;
     input load;

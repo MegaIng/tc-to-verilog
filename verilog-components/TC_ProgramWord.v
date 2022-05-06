@@ -1,4 +1,6 @@
 module TC_ProgramWord (clk, rst, address, out0, out1, out2, out3);
+    parameter UUID = 0;
+    parameter NAME = "";
     parameter BIT_WIDTH = 16;
     parameter BIT_DEPTH = 256;
     parameter HEX_FILE = "test_jumps.mem";
@@ -49,7 +51,7 @@ module TC_ProgramWord (clk, rst, address, out0, out1, out2, out3);
                 end
                 i = i + 1;
             end
-            $display("read %d bytes", i);
+            $display("read %0d bytes", i);
         end else begin
             $display("file not found");
         end

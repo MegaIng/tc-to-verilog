@@ -1,4 +1,6 @@
 module TC_Hdd (clk, rst, seek, load, save, in, out);
+    parameter UUID = 0;
+    parameter NAME = "";
     parameter BIT_DEPTH = 256;
     parameter HEX_FILE = "test_jumps.mem";
     parameter ARG_SIG = "HEX_FILE=%s";
@@ -46,7 +48,7 @@ module TC_Hdd (clk, rst, seek, load, save, in, out);
                 end
                 i = i + 1;
             end
-            $display("read %d bytes", i);
+            $display("read %0d bytes", i);
         end else begin
             $display("file not found");
         end

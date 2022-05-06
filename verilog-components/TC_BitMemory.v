@@ -1,4 +1,6 @@
 module TC_BitMemory (clk, rst, save, in, out);
+    parameter UUID = 0;
+    parameter NAME = "";
     input clk;
     input rst;
     input save;

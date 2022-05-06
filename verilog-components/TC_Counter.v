@@ -1,4 +1,6 @@
 module TC_Counter (clk, rst, save, in, out);
+    parameter UUID = 0;
+    parameter NAME = "";
     parameter BIT_WIDTH = 8;
     parameter count = 1;
     input clk;

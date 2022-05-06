@@ -1,4 +1,6 @@
 module TC_Switch(en, in, out);
+    parameter UUID = 0;
+    parameter NAME = "";
     parameter BIT_WIDTH = 1;
     input en;
     input [BIT_WIDTH-1:0] in;

@@ -1,4 +1,6 @@
 module TC_FileRom (clk, rst, en, address, out);
+    parameter UUID = 0;
+    parameter NAME = "";
     parameter BIT_WIDTH = 8;
     parameter BIT_DEPTH = 302;
     parameter HEX_FILE = "test_jumps.mem";
@@ -31,7 +33,7 @@ module TC_FileRom (clk, rst, en, address, out);
                 mem[i] = $fgetc(fd);
                 i = i + 1;
             end
-            $display("read %d bytes", i);
+            $display("read %0d bytes", i);
         end else begin
             $display("file not found");
         end

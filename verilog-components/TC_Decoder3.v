@@ -1,4 +1,6 @@
 module TC_Decoder3 (dis, sel0, sel1, sel2, out0, out1, out2, out3, out4, out5, out6, out7);
+    parameter UUID = 0;
+    parameter NAME = "";
     input dis;
     input sel0;
     input sel1;

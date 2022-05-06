@@ -1,4 +1,6 @@
 module TC_DelayLine (clk, rst, in, out);
+    parameter UUID = 0;
+    parameter NAME = "";
     parameter BIT_WIDTH = 1;
     input clk;
     input rst;

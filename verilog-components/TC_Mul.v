@@ -1,4 +1,6 @@
 module TC_Mul (in0, in1, out0, out1);
+    parameter UUID = 0;
+    parameter NAME = "";
     parameter BIT_WIDTH = 1;
     input [BIT_WIDTH-1:0] in0;
     input [BIT_WIDTH-1:0] in1;

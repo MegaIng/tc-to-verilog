@@ -1,4 +1,6 @@
 module TC_CheapRamLat (clk, rst, load, save, address, in0, in1, in2, in3, ready, out0, out1, out2, out3);
+    parameter UUID = 0;
+    parameter NAME = "";
     parameter BIT_WIDTH = 16;
     parameter BIT_DEPTH = 256;
     input clk;

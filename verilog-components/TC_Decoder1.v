@@ -1,4 +1,6 @@
 module TC_Decoder1 (sel, out0, out1);
+    parameter UUID = 0;
+    parameter NAME = "";
     input sel;
     output reg out0, out1;
 

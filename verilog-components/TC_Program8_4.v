@@ -1,4 +1,6 @@
 module TC_Program8_4 (clk, rst, address, out0, out1, out2, out3);
+    parameter UUID = 0;
+    parameter NAME = "";
     parameter BIT_DEPTH = 256;
     parameter HEX_FILE = "test_jumps.mem";
     parameter ARG_SIG = "HEX_FILE=%s";
@@ -27,7 +29,7 @@ module TC_Program8_4 (clk, rst, address, out0, out1, out2, out3);
                 mem[i] = $fgetc(fd);
                 i = i + 1;
             end
-            $display("read %d bytes", i);
+            $display("read %0d bytes", i);
         end else begin
             $display("file not found");
         end

@@ -1,4 +1,6 @@
 module TC_DualLoadRam (clk, rst, load0, save, address0, in, load1, address1, out0, out1);
+    parameter UUID = 0;
+    parameter NAME = "";
     parameter BIT_WIDTH = 16;
     parameter BIT_DEPTH = 256;
     input clk;

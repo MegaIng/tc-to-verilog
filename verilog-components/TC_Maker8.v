@@ -1,4 +1,6 @@
 module TC_Maker8 (in0, in1, in2, in3, in4, in5, in6, in7, out);
+    parameter UUID = 0;
+    parameter NAME = "";
     input in0;
     input in1;
     input in2;

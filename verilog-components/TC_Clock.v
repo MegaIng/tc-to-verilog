@@ -1,4 +1,6 @@
 module TC_Clock (en, out);
+    parameter UUID = 0;
+    parameter NAME = "";
     parameter START_TIME = 0;
     input en;
     output [63:0] out;

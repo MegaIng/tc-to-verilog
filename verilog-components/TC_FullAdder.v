@@ -1,4 +1,6 @@
 module TC_FullAdder (in0, in1, ci, out, co);
+    parameter UUID = 0;
+    parameter NAME = "";
     input in0;
     input in1;
     input ci;

@@ -1,4 +1,6 @@
 module TC_Splitter8 (in, out0, out1, out2, out3, out4, out5, out6, out7);
+    parameter UUID = 0;
+    parameter NAME = "";
     input [7:0] in;
     output out0;
     output out1;
