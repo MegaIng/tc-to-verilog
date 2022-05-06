@@ -9,13 +9,8 @@ from pprint import pprint
 
 from tc2verilog.base_tc_component import TCComponent, TCPin, IOComponent, Size, NeedsClock as _NeedsClock
 
-try:
-    import nimporter
-except ImportError:
-    print("Couldn't import nimporter, assuming save_monger is available anyway.")
-
 # noinspection PyUnresolvedReferences
-import tc2verilog.save_monger as save_monger
+import save_monger
 from dataclasses import dataclass
 from typing import Literal, TypeAlias, ClassVar, cast
 
@@ -86,6 +81,7 @@ class TCSchematic:
 
     @cached_property
     def components(self) -> list[TCComponent]:
+        from tc2verilog import tc_components
         out = []
         used_labels = set()
         for c in self.raw_nim_data["components"]:
@@ -262,5 +258,3 @@ def get_path():
 BASE_PATH = get_path()
 
 SCHEMATICS = BASE_PATH / "schematics"
-
-from tc2verilog import tc_components

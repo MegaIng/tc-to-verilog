@@ -1,7 +1,5 @@
 from functools import cached_property
-from math import ceil
 from pathlib import Path
-from typing import ClassVar as _ClassVar
 
 from tc2verilog.base_tc_component import TCComponent as _TCComponent, Out as _Out, OutTri as _OutTri, In as _In, \
     InSquare as _InSquare, Unbuffered as _Unbuffered, Size as _Size, NeedsClock as _NeedsClock, \
@@ -865,11 +863,6 @@ class _SimpleInput(_IOComponent):
     pass
 
 
-class Input1(_SimpleInput):
-    size = 1
-    pins = [_Out("value", (1, 0), 1)]
-
-
 class Input2Pin(_SimpleInput):
     size = 1
     pins = [
@@ -897,24 +890,11 @@ class Input4Pin(_SimpleInput):
     ]
 
 
-class Input8(_SimpleInput):
-    size = 8
-    pins = [_Out("value", (1, 0), 8)]
-
-
-class Input16(_SimpleInput):
-    size = 16
-    pins = [_Out("value", (2, 0), 16)]
-
-
-class Input32(_SimpleInput):
-    size = 32
-    pins = [_Out("value", (2, 0), 32)]
-
-
-class Input64(_SimpleInput):
-    size = 64
-    pins = [_Out("value", (3, 0), 64)]
+@_generate_sizes(1, 8, 16, 32, 64)
+class _Input(_IOComponent):
+    pins = [
+        _Out("value", (_size(1, 1, 2, 2, 3), 0), _size),
+    ]
 
 
 # noinspection PyPep8Naming
@@ -934,9 +914,11 @@ class _SimpleOutput(_IOComponent):
     pass
 
 
-class Output1(_SimpleOutput):
-    size = 1
-    pins = [_In("value", (-1, 0), 1)]
+@_generate_sizes(1, 8, 16, 32, 64)
+class _Output(_IOComponent):
+    pins = [
+        _In("value", (_size(-1, -1, -2, -2, -3), 0), _size),
+    ]
 
 
 class Output2Pin(_SimpleOutput):
@@ -972,26 +954,6 @@ class Output1Sum(Output1):
 
 class Output1Car(Output1):
     pass
-
-
-class Output8(_SimpleOutput):
-    size = 8
-    pins = [_In("value", (-1, 0), 8)]
-
-
-class Output16(_SimpleOutput):
-    size = 16
-    pins = [_In("value", (-2, 0), 16)]
-
-
-class Output32(_SimpleOutput):
-    size = 32
-    pins = [_In("value", (-2, 0), 32)]
-
-
-class Output64(_SimpleOutput):
-    size = 64
-    pins = [_In("value", (-3, 0), 64)]
 
 
 # noinspection PyPep8Naming

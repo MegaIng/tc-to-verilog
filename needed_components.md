@@ -83,8 +83,8 @@ logxen> almost everything now has a size parameter to control its bit width. exc
 | Screen                  |                |                 |       |
 | Program8_1              | (later)        | yes             | yes   |
 | Program8_1Red           |                |                 |       |
-| DONT_REUSE_0            |                |                 |       |
-| DONT_REUSE_1            |                |                 |       |
+| DELETED_6               |                |                 |       |
+| DELETED_7               |                |                 |       |
 | Program8_4              | (later)        | yes             | yes   |
 | LevelGate               |                |                 |       |
 | Input1                  |                |                 | yes   |
@@ -132,8 +132,8 @@ logxen> almost everything now has a size parameter to control its bit width. exc
 | Shr64                   | yes            | yes             | yes   |
 | Mux64                   | yes            | yes             | yes   |
 | Switch64                | yes            | yes             | yes   |
-| ProbeComponentBit       |                |                 |       |
-| ProbeComponentWord      |                |                 |       |
+| ProbeMemoryBit          |                |                 |       |
+| ProbeMemoryWord         |                |                 |       |
 | AndOrLatch              | yes            | *1              |       |
 | NandNandLatch           | yes            | yes *1          |       |
 | NorNorLatch             | yes            | yes *1          |       |
@@ -239,3 +239,4 @@ logxen> almost everything now has a size parameter to control its bit width. exc
 | VirtualDualLoadRam      |                |                 |       |
 | Hdd                     | (later)        | yes             | yes   |
 | VirtualHdd              |                |                 |       |
+| Hdd                     | (later)        |                 |       |
