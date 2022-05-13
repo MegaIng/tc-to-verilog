@@ -16,56 +16,37 @@ from tc2verilog.tc_components import _Input, _SimpleInput, Input1_1B, Output1_1B
 from tc2verilog.tc_schematics import TCSchematic, normalize_name, get_cc_info
 
 """
-A generalized Component has from the perspective of verilog these elements:
-
-- verilog_name
-  the direct name of the file and corresponding submodule
-- parameters
-  dictionary of key-value pairs, all strings
-- pins
-  - inputs
-  - outputs
-  - bidirectional
-- ports
-  - io ports
-    - normal input
-    - normal output
-    - tristate output
-    - bidirectional
-  - meta ports
-    - clk, rst, gpio, ...
-
-A Generator handles some specific type of objects and generates, possibly calling sub generators in the process,
- a list of VerilogStatements
+A Generator handles some specific type of objects, possibly calling sub generators in the process,
+calling methods on a VerilogModule instance in the process, building the needed statements in the process.
 
 VerilogModule
--> add_wire(name: str) -> VerilogWire
--> add_in_port(name: str, size: int) -> SignalSource
--> add_out_port(name: str, size: int) -> SignalTarget
--> add_submodule(component: TCComponent, arguments: list[tuple[Port, SignalSource | SignalTarget]])
--> add_assign(targets: list[SignalTarget], sources: list[SignalSource])
+-> add_wire(name: str) -> (Target, Source)
+-> add_in_port(name: str, size: int) -> Source
+-> add_out_port(name: str, size: int) -> Target
+-> add_submodule(...<Everything needed to construct a VerilogSubmodule instance>...)
+-> add_assign(target: SignalTarget, source: SignalSource)
 
-VerilogStatements
-- VerilogDeclarations/VerilogPortDeclarations
-  - name (for VerilogPortDeclarations also gets added as an entry in the main port list)
-  - type
+
+- VerilogWire/VerilogInPort/VerilogOutPort
+  - name
   - size
 - VerilogAssign
-  - sources: list[tuple[SignalSources, int, int]]
-  - target: SignalTarget
+  - sources: list[Source]
+  - target: Target
 - VerilogSubmodule
-  - component: TCComponent
-    - verilog_name
-    - parameters
-  - arguments: list[tuple[Port, SignalSource | SignalTarget]]
+    - module_name
+    - name
+    - parameters: dict[str, VerilogValue]
+    - inputs: dict[str, tuple[Source, int]]
+    - outputs: dict[str, tuple[Target, int]]
 
-SignalSources are:
+Sources are:
 - Normal Wires
 - Tristate Wires
 - Input ports (normal input and bidirectional)
 - FixedValueSource
 
-SignalTargets are:
+Targets are:
 - Normal wires
 - Tristate wires
 - output ports (normal output, tristate output x2, bidirectional)
