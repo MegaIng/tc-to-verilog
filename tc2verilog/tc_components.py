@@ -817,27 +817,27 @@ class FileRom(_NeedsClock):
 
     @cached_property
     def configured_path(self) -> Path | None:
-        p = translate_path(self.custom_string)
+        p = translate_path(self.custom_string_raw)
         if p.exists():
             return p
         else:
             return None
 
-    @property
-    def file_size(self) -> int:
-        p = self.configured_path
-        if p is None:
-            return 0
-        else:
-            return p.stat().st_size
+    # @property
+    # def file_size(self) -> int:
+    #     p = self.configured_path
+    #     if p is None:
+    #         return 0
+    #     else:
+    #         return p.stat().st_size
 
     @property
     def parameters(self):
         return {
             "BIT_DEPTH": 256,
-            "ARG_SIG": f'"HEX_FILE_{self.name_id}=%s"',
+            "ARG_SIG": f'HEX_FILE_{self.name_id}=%s',
             "HEX_FILE": f'{self.default_file_name}',
-            "FILE_BYTES": self.file_size,
+            # "FILE_BYTES": self.file_size,
         }
 
     @property
@@ -855,6 +855,13 @@ class FileRom(_NeedsClock):
 
 class Halt(_TCComponent):
     pins = [_In("en", (-1, 0), 1)]
+
+
+class Console(_NeedsClock):
+    pins = [
+        _In("en", (-16, -8), 1),
+        _In("data", (-16, -7), 32),
+    ]
 
 
 # endregion
@@ -927,7 +934,7 @@ class _Output(_SimpleOutput):
 @_generate_sizes(1, 8, 16, 32, 64)
 class _OutputSSz(_IOComponent):
     pins = [
-        _In("control", (0, _size(1, 1, 2, 2, 2)), _size),
+        _In("control", (0, _size(1, 1, 2, 2, 2)), 1),
         _In("value", (_size(-1, -1, -2, -2, -3), 0), _size),
     ]
 
@@ -973,5 +980,18 @@ class Output1_1B(_IOComponent):
         _In("control", (0, 1), 1),
         _In("value", (-1, 0), 8),
     ]
+
+# endregion
+
+
+# region Bidirectional Pins
+
+@_generate_sizes(1, 8, 16, 32, 64)
+class _Bidirectional(_IOComponent):
+    pins = [
+        _Unbuffered("value", (0, _size(1, 1, 2, 2, 2)), _size),
+    ]
+
+
 
 # endregion

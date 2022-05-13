@@ -1,3 +1,4 @@
+from __future__ import annotations
 import os
 import re
 import sys
@@ -215,9 +216,11 @@ class CustomComponentShape:
         for component in schematic.components:
             if isinstance(component, IOComponent):
                 io_components.append(component)
-        io_components.sort(key=attrgetter('pos'))
+        io_components.sort(key=lambda c: ((c.pos[0] - 1) // 8, (c.pos[1] - 1) // 8))
         # print(list(map(attrgetter('pos'), io_components)))
-        # pprint([[self.raw[j][i] for j in range(len(self.raw))] for i in range(len(self.raw[0]))], width=100)
+        # print(list(map(lambda c: ((c.pos[0] - 1) // 8, (c.pos[1] - 1) // 8), io_components)))
+        # print(list(map(attrgetter('__class__.__name__'), io_components)))
+        # pprint([[self.raw[j][i] for j in range(len(self.raw))] for i in range(len(self.raw[0]))], width=230)
         i = 0
         for x, row in enumerate(self.raw):
             for y, v in enumerate(row):
@@ -225,6 +228,7 @@ class CustomComponentShape:
                 if PIN_TYPES[v] is None:
                     continue
                 yield PIN_TYPES[v], (x - 15, y - 15), io_components[i]
+                # print(x - 15, y - 15)
                 i += 1
 
 

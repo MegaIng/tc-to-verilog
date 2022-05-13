@@ -12,7 +12,8 @@ from typing import Iterator, TypeAlias, Callable, Any
 import json
 
 from tc2verilog.base_tc_component import TCComponent, In, Out, OutTri, Unbuffered
-from tc2verilog.tc_components import _Input, _SimpleInput, Input1_1B, Output1_1B, _SimpleOutput, _OutputSSz
+from tc2verilog.tc_components import _Input, _SimpleInput, Input1_1B, Output1_1B, _SimpleOutput, _OutputSSz, \
+    _Bidirectional
 from tc2verilog.tc_schematics import TCSchematic, normalize_name, get_cc_info
 
 """
@@ -130,6 +131,7 @@ class FullOutput:
             self.generate_recursive("component_factory", cc_info.rel_path, prefix='TC_')
 
     def output_to(self, folder: Path):
+        folder.mkdir(parents=True, exist_ok=True)
         for name, module in self.modules.items():
             path = folder / f"{name}.v"
             path.write_text(module.get_verilog())
@@ -148,6 +150,7 @@ class FullOutput:
 STANDARD_PARAMETERS_TO_VERILOG: dict[str, Callable[[Any], VerilogValue]] = {
     "BIT_WIDTH": VInt,
     "BIT_DEPTH": VInt,
+    "FILE_BYTES": VInt,
 
     "ARG_SIG": VString,
     "HEX_FILE": VString,
@@ -159,6 +162,7 @@ STANDARD_PARAMETERS_TO_VERILOG: dict[str, Callable[[Any], VerilogValue]] = {
 STANDARD_PARAMETERS_TO_JSON: dict[str, Callable[[Any], Any] | None] = {
     "BIT_WIDTH": lambda d: d,
     "BIT_DEPTH": lambda d: d,
+    "FILE_BYTES": lambda d: d,
 
     "ARG_SIG": lambda d: d,
     "HEX_FILE": lambda d: d,
@@ -300,19 +304,30 @@ class VerilogModule:
         for port, (target, size) in outputs.items():
             self._register_source(target, size)
 
-    def split_source(self, source: Source) -> (Source, Target):
+    def split_wire(self, wire_target: Target, wire_source: Source) -> (Source, Target):
         """
-        original_source -----------------------------------------------> original_users
-        original_source --------> split_source ?? split_target --wire--> original_users
+        wire_target ----------------------wire---------------------> wire_source
+        wire_target --wire--> split_source ?? split_target --wire--> wire_source
         """
-        raise NotImplementedError
+        old_wire = self._source_definitions[wire_source]
+        assert isinstance(old_wire, _VerilogWire), old_wire
+        split_source, split_target = Source(f"split_source"), Target(f"split_target")
+        old_wire.input = wire_target
+        old_wire.output = split_source
 
-    def split_target(self, target: Target) -> (Source, Target):
-        """
-        original_users -----------------------------------------------> original_target
-        original_users --wire--> split_source ?? split_target --------> original_target
-        """
-        raise NotImplementedError
+        new_wire = _VerilogWire(f"{old_wire.name}_split", wire_source, split_target, old_wire.size)
+        self._wires.append(new_wire)
+
+        old_wire.input.name = old_wire.output.name = old_wire.name
+        new_wire.input.name = new_wire.output.name = new_wire.name
+
+        self._source_definitions[old_wire.output] = old_wire
+        self._source_definitions[new_wire.output] = new_wire
+
+        self._target_definitions[old_wire.input] = old_wire
+        self._target_definitions[new_wire.input] = new_wire
+
+        return split_source, split_target
 
     def get_source_verilog(self, source: Source, size: int) -> str:
         obj = self._source_definitions[source]
@@ -559,10 +574,49 @@ class TriStateOutputGenerator(ComponentGenerator, priority=1, components=_Output
         )
 
 
-class SimpleComponentGenerator(ComponentGenerator, priority=0, components=TCComponent):
+class BidirectionalPinGenerator(ComponentGenerator, priority=1, components=_Bidirectional):
+    component: _Bidirectional
+
     def generate(self, module: VerilogModule):
-        inputs = {}
-        outputs = {}
+        (value_pos, value_port), = self.component.positioned_pins
+        out_target = module.add_output(pin_name := normalize_name(f"{self.component.io_name}_uout"),
+                                       self.component.size)
+        module.add_pin_info(pin_name, {
+            'position': value_pos,
+            'bit_width': self.component.size,
+            'kind': "bidirectional_output",
+            'name': "uout"
+        })
+        in_source = module.add_input(pin_name := normalize_name(f"{self.component.io_name}_uin"), self.component.size)
+        module.add_pin_info(pin_name, {
+            'position': value_pos,
+            'bit_width': self.component.size,
+            'kind': "bidirectional_input",
+            'name': "uin"
+        })
+
+        if not (value_pos in self.base.sources_by_position and value_pos in self.base.targets_by_position):
+            return
+        value_source = self.base.sources_by_position[value_pos]
+        value_target = self.base.targets_by_position[value_pos]
+        split_source, split_target = module.split_wire(value_target, value_source)
+        module.add_assign(split_source, out_target)
+        module.add_assign(in_source, split_target)
+        module.add_assign(split_source, split_target)
+
+
+class SimpleComponentGenerator(ComponentGenerator, priority=0, components=TCComponent):
+    def generate_parent_unbuffered(self, module: VerilogModule, name: str, wire_target: Target,
+                                   wire_source: Source) -> tuple[tuple[str, Source], tuple[str, Target]]:
+        temp_target, temp_source = module.add_wire(f"unbuffered_{self.component.name_id}_{self.i}_{name}_temp")
+        split_source, split_target = module.split_wire(wire_target, wire_source)
+        module.add_assign(split_source, split_target)
+        module.add_assign(temp_source, split_target)
+        return (f"{name}_uin", wire_source), (f"{name}_uout", temp_target)
+
+    def generate(self, module: VerilogModule):
+        inputs: dict[str, tuple[Source, int]] = {}
+        outputs: dict[str, tuple[Target, int]] = {}
         for pos, port in self.component.positioned_pins:
             match port:
                 case In(name, _, size):
@@ -573,6 +627,16 @@ class SimpleComponentGenerator(ComponentGenerator, priority=0, components=TCComp
                 case Out(name, _, size):
                     if pos in self.base.targets_by_position:
                         outputs[name] = self.base.targets_by_position[pos], size
+                case Unbuffered(name, _, size):
+                    if pos not in self.base.sources_by_position:
+                        continue
+                    if pos not in self.base.targets_by_position:
+                        continue
+                    source = self.base.sources_by_position[pos]
+                    target = self.base.targets_by_position[pos]
+                    inp, out = self.generate_parent_unbuffered(module, name, target, source)
+                    inputs[inp[0]] = inp[1], size
+                    outputs[out[0]] = out[1], size
                 case _:
                     raise NotImplementedError(port)
 
