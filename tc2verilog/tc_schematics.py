@@ -87,9 +87,64 @@ def normalize_name(name):
     return name
 
 
+@dataclass(frozen=True)
+class LevelInfo:
+    index: int
+    enum_number: int
+    enum_id: str
+    title: str
+    is_architecture: bool
+    no_score: bool
+    level_version: int
+
+
+@dataclass
+class LevelMetaDB:
+    by_index: list[LevelInfo]
+
+    @cached_property
+    def by_enum_number(self):
+        return {l.enum_number: l for l in self.by_index}
+
+    @cached_property
+    def by_enum_id(self):
+        return {l.enum_id: l for l in self.by_index}
+
+    @cached_property
+    def by_title(self):
+        return {l.title: l for l in self.by_index}
+
+    def lookup(self, key) -> LevelInfo:
+        try:
+            return self.by_enum_id[key]
+        except KeyError:
+            pass
+        try:
+            return self.by_enum_number[key]
+        except KeyError:
+            pass
+        try:
+            return self.by_title[key]
+        except KeyError:
+            pass
+        raise LookupError(f"No level found for {key}")
+
+    @classmethod
+    def open(cls, path=Path(__file__).with_name('api_level_meta.txt')) -> LevelMetaDB:
+        lines = path.read_text().strip().splitlines(False)
+        lines = [l.split(',') for l in lines]
+        return cls([
+            LevelInfo(i, int(en), ei, t, a == 'true', ns == 'true', int(lv))
+            for i, (en, ei, t, a, ns, lv) in enumerate(lines)
+        ])
+
+
+levels = LevelMetaDB.open()
+
 @dataclass(eq=False)
 class TCSchematic:
     raw_nim_data: dict
+    folder: Path
 
     @property
     def save_version(self):
@@ -130,7 +185,8 @@ class TCSchematic:
 
     @classmethod
     def open_level(cls, level_name: str, save_name: str):
-        return cls(save_monger.parse_state((SCHEMATICS / level_name / save_name / "circuit.data").read_bytes()), )
+        folder = SCHEMATICS / level_name / save_name
+        return cls(save_monger.parse_state((folder / "circuit.data").read_bytes()), folder)
 
     @cached_property
     def wire_map(self) -> dict[tuple[int, int], set[tuple[int, int]]]:
@@ -240,7 +296,7 @@ class CustomComponentInfo:
 
     @cached_property
     def schematic(self):
-        return TCSchematic(save_monger.parse_state(self.path.read_bytes()))
+        return TCSchematic(save_monger.parse_state(self.path.read_bytes()), self.path.parent)
 
     @cached_property
     def paired_pins(self):

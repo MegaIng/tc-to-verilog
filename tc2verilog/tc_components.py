@@ -9,7 +9,8 @@ from tc2verilog.base_tc_component import TCComponent as _TCComponent, Out as _Ou
 from tc2verilog.tc_schematics import Custom
 
 # region BitComponents
-from tc2verilog.memory_files import MemoryFile, ComponentMemoryFile, FileRomMemoryFile, translate_path
+from tc2verilog.memory_files import MemoryFile, ComponentMemoryFile, FileRomMemoryFile, translate_path, \
+    ProgramMemoryFile
 
 
 class Not(_TCComponent):
@@ -743,7 +744,7 @@ class Program8_1(_NeedsClock):
 
     @property
     def memory_files(self):
-        yield MemoryFile(self.default_file_name, 8, 256)
+        yield ProgramMemoryFile(self.default_file_name, 8, 256, self.raw_nim_data["selected_programs"])
 
 
 # noinspection PyPep8Naming
@@ -770,7 +771,7 @@ class Program8_4(_NeedsClock):
 
     @property
     def memory_files(self):
-        yield MemoryFile(self.default_file_name, 8, 256)
+        yield ProgramMemoryFile(self.default_file_name, 8, 256, self.raw_nim_data["selected_programs"])
 
 
 class ProgramWord(_NeedsClock):
@@ -805,7 +806,7 @@ class ProgramWord(_NeedsClock):
 
     @property
     def memory_files(self):
-        yield MemoryFile(self.default_file_name, self.word_size, 0)
+        yield ProgramMemoryFile(self.default_file_name, self.word_size, 0, self.raw_nim_data["selected_programs"])
 
 
 class FileRom(_NeedsClock):
@@ -823,13 +824,13 @@ class FileRom(_NeedsClock):
         else:
             return None
 
-    # @property
-    # def file_size(self) -> int:
-    #     p = self.configured_path
-    #     if p is None:
-    #         return 0
-    #     else:
-    #         return p.stat().st_size
+    @property
+    def file_size(self) -> int:
+        p = self.configured_path
+        if p is None:
+            return 0
+        else:
+            return p.stat().st_size
 
     @property
     def parameters(self):

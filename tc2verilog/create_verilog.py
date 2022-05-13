@@ -7,14 +7,15 @@ from collections import defaultdict
 from dataclasses import dataclass, field
 from os import PathLike
 from pathlib import Path
-from typing import Iterator, TypeAlias, Callable, Any
+from typing import Iterator, TypeAlias, Callable, Any, Sequence
 
 import json
 
 from tc2verilog.base_tc_component import TCComponent, In, Out, OutTri, Unbuffered
+from tc2verilog.memory_files import MemoryFile
 from tc2verilog.tc_components import _Input, _SimpleInput, Input1_1B, Output1_1B, _SimpleOutput, _OutputSSz, \
     _Bidirectional
-from tc2verilog.tc_schematics import TCSchematic, normalize_name, get_cc_info
+from tc2verilog.tc_schematics import TCSchematic, normalize_name, get_cc_info, LevelInfo
 
 """
 A Generator handles some specific type of objects, possibly calling sub generators in the process,
@@ -104,6 +105,7 @@ class FullOutput:
     modules: dict[str, VerilogModule] = field(default_factory=dict)
     component_info: defaultdict[str, list[dict[str, Any]]] = field(default_factory=lambda: defaultdict(list))
     pin_info: defaultdict[str, dict[str, dict[str, Any]]] = field(default_factory=lambda: defaultdict(dict))
+    memory_files: list[MemoryFile] = field(default_factory=list)
 
     def add_component_info(self, module_name: str, info: dict[str, Any]):
         self.component_info[module_name].append(info)
@@ -118,6 +120,12 @@ class FullOutput:
         self.modules[name] = m = VerilogModule(self, name)
         return m
 
+    def add_memory_file(self, memory_files: Sequence[MemoryFile], schematic_folder=None):
+        for mf in memory_files:
+            if schematic_folder is not None:
+                mf.schematic_folder = schematic_folder
+            self.memory_files.append(mf)
+
     def generate_recursive(self, level_name: str, schematic_name: str, prefix: str = ''):
         print(level_name, schematic_name)
         schematic = TCSchematic.open_level(level_name, schematic_name)
@@ -130,11 +138,13 @@ class FullOutput:
             cc_info = get_cc_info(cc_id)
             self.generate_recursive("component_factory", cc_info.rel_path, prefix='TC_')
 
-    def output_to(self, folder: Path):
+    def output_to(self, folder: Path, assume_level: LevelInfo = 86):
         folder.mkdir(parents=True, exist_ok=True)
         for name, module in self.modules.items():
             path = folder / f"{name}.v"
             path.write_text(module.get_verilog())
+        for memory_file in self.memory_files:
+            (folder / memory_file.out_file).write_bytes(memory_file.get_padded_content(assume_level.enum_number))
         with (folder / "components.json").open("w") as f:
             json.dump({
                 "modules": {
@@ -660,3 +670,4 @@ class SimpleComponentGenerator(ComponentGenerator, priority=0, components=TCComp
             verilog_name=v_name,
             **parameters
         )
+        module.full_output.add_memory_file(self.component.memory_files, self.base.schematic.folder)
