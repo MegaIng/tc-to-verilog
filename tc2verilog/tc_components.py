@@ -6,7 +6,7 @@ from tc2verilog.base_tc_component import TCComponent as _TCComponent, Out as _Ou
     IOComponent as _IOComponent, generate_sizes as _generate_sizes, size_hole as _size
 
 # noinspection PyUnresolvedReferences
-from tc2verilog.tc_schematics import CustomComponent as Custom
+from tc2verilog.tc_schematics import Custom
 
 # region BitComponents
 from tc2verilog.memory_files import MemoryFile, ComponentMemoryFile, FileRomMemoryFile, translate_path
@@ -918,8 +918,16 @@ class _SimpleOutput(_IOComponent):
 
 
 @_generate_sizes(1, 8, 16, 32, 64)
-class _Output(_IOComponent):
+class _Output(_SimpleOutput):
     pins = [
+        _In("value", (_size(-1, -1, -2, -2, -3), 0), _size),
+    ]
+
+
+@_generate_sizes(1, 8, 16, 32, 64)
+class _OutputSSz(_IOComponent):
+    pins = [
+        _In("control", (0, _size(1, 1, 2, 2, 2)), _size),
         _In("value", (_size(-1, -1, -2, -2, -3), 0), _size),
     ]
 

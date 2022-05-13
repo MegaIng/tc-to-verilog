@@ -5,11 +5,15 @@ from abc import abstractmethod, ABC
 from builtins import abs
 from collections import defaultdict
 from dataclasses import dataclass, field
+from os import PathLike
+from pathlib import Path
 from typing import Iterator, TypeAlias, Callable, Any
 
+import json
+
 from tc2verilog.base_tc_component import TCComponent, In, Out, OutTri, Unbuffered
-from tc2verilog.tc_components import _Input, _SimpleInput, Input1_1B, Output1_1B, _SimpleOutput
-from tc2verilog.tc_schematics import TCSchematic, normalize_name
+from tc2verilog.tc_components import _Input, _SimpleInput, Input1_1B, Output1_1B, _SimpleOutput, _OutputSSz
+from tc2verilog.tc_schematics import TCSchematic, normalize_name, get_cc_info
 
 """
 A generalized Component has from the perspective of verilog these elements:
@@ -132,15 +136,54 @@ class FullOutput:
         self.modules[name] = m = VerilogModule(self, name)
         return m
 
+    def generate_recursive(self, level_name: str, schematic_name: str, prefix: str = ''):
+        print(level_name, schematic_name)
+        schematic = TCSchematic.open_level(level_name, schematic_name)
+        if normalize_name(prefix + str(schematic_name)) in self.modules:
+            return
+        module = self.add_module(normalize_name(prefix + str(schematic_name)))
+        gen = SchematicGenerator(schematic)
+        gen.generate(module)
+        for cc_id in schematic.dependencies:
+            cc_info = get_cc_info(cc_id)
+            self.generate_recursive("component_factory", cc_info.rel_path, prefix='TC_')
+
+    def output_to(self, folder: Path):
+        for name, module in self.modules.items():
+            path = folder / f"{name}.v"
+            path.write_text(module.get_verilog())
+        with (folder / "components.json").open("w") as f:
+            json.dump({
+                "modules": {
+                    name: {
+                        "components": self.component_info[name],
+                        "pins": self.pin_info[name],
+                    }
+                    for name in self.modules
+                }
+            }, f, indent=2)
+
 
 STANDARD_PARAMETERS_TO_VERILOG: dict[str, Callable[[Any], VerilogValue]] = {
     "BIT_WIDTH": VInt,
-    "value": lambda t: VInt(*t)
+    "BIT_DEPTH": VInt,
+
+    "ARG_SIG": VString,
+    "HEX_FILE": VString,
+
+    "value": lambda t: VInt(*t),
+    "count": lambda t: VInt(*t),
 }
 
 STANDARD_PARAMETERS_TO_JSON: dict[str, Callable[[Any], Any] | None] = {
-    "BIT_WIDTH": None,
-    "value": lambda t: t[0]
+    "BIT_WIDTH": lambda d: d,
+    "BIT_DEPTH": lambda d: d,
+
+    "ARG_SIG": lambda d: d,
+    "HEX_FILE": lambda d: d,
+
+    "value": lambda t: t[0],
+    "count": lambda t: t[0],
 }
 
 
@@ -214,18 +257,26 @@ class _VerilogAssign:
 
 
 @dataclass
+class _VerilogConstant:
+    value: int
+    size: int
+    source: Source
+
+
+@dataclass
 class VerilogModule:
     full_output: FullOutput
     name: str
-    _source_definitions: dict[Source, _VerilogWire | _VerilogInPort | _VerilogOutPort] = field(default_factory=dict)
-    _target_definitions: dict[Target, _VerilogWire | _VerilogInPort | _VerilogOutPort] = field(default_factory=dict)
+    _source_definitions: dict[Source, _VerilogWire | _VerilogInPort | _VerilogConstant] = field(default_factory=dict)
+    _target_definitions: dict[Target, _VerilogWire | _VerilogOutPort] = field(default_factory=dict)
     _assigns: dict[Target, _VerilogAssign] = field(default_factory=dict)
     _wires: list[_VerilogWire] = field(default_factory=list)
     _ports: list[_VerilogInPort | _VerilogOutPort] = field(default_factory=list)
     _submodules: list[_VerilogSubmodule] = field(default_factory=list)
 
     def get_constant(self, size: int, value: int) -> Source:
-        raise NotImplementedError
+        self._source_definitions[s] = _VerilogConstant(value, size, s := Source(f"{size}'d{value}"))
+        return s
 
     def add_wire(self, name: str) -> (Target, Source):
         self._wires.append(w := _VerilogWire(name, s := Source(name), t := Target(name)))
@@ -409,7 +460,7 @@ class SimpleInputGenerator(ComponentGenerator, priority=1, components=_SimpleInp
         for pos, port in self.component.positioned_pins:
             match port:
                 case Out(name, _, size):
-                    source = module.add_input(pin_name := f"{self.component.permanent_id}_{name}", size)
+                    source = module.add_input(pin_name := normalize_name(self.component.io_name), size)
                     target = self.base.targets_by_position[pos]
                     module.add_assign(source, target)
                     module.add_pin_info(pin_name, {
@@ -423,11 +474,13 @@ class SimpleInputGenerator(ComponentGenerator, priority=1, components=_SimpleInp
 
 
 class SimpleOutputGenerator(ComponentGenerator, priority=1, components=_SimpleOutput):
+    component: _SimpleOutput
+
     def generate(self, module: VerilogModule):
         for pos, port in self.component.positioned_pins:
             match port:
                 case In(name, _, size):
-                    target = module.add_output(pin_name := f"{self.component.permanent_id}_{name}", size)
+                    target = module.add_output(pin_name := normalize_name(self.component.io_name), size)
                     source = self.base.sources_by_position[pos]
                     module.add_assign(source, target)
                     module.add_pin_info(pin_name, {
@@ -490,6 +543,41 @@ class ArchOutputGenerator(ComponentGenerator, priority=1, components=Output1_1B)
         })
 
 
+class TriStateOutputGenerator(ComponentGenerator, priority=1, components=_OutputSSz):
+    component: _OutputSSz
+
+    def generate(self, module: VerilogModule):
+        (cont_pos, cont_port), (value_pos, value_port) = self.component.positioned_pins
+
+        cont_source = self.base.sources_by_position[cont_pos]
+        value_source = self.base.sources_by_position[value_pos]
+
+        out_target = module.add_output(pin_name := normalize_name(self.component.io_name), self.component.size)
+        module.add_pin_info(pin_name, {
+            'position': value_pos,
+            'bit_width': self.component.size,
+            'kind': "output",
+            'name': "in"
+        })
+
+        module.add_submodule(
+            module_name="TC_Switch",
+            name=normalize_name(f"Switch_Output{self.component.size}z_{self.component.name_id}_{self.i}"),
+            parameters={
+                "UUID": VUUID(self.component.permanent_id),
+                "NAME": VString(self.component.name_id),
+                "BIT_WIDTH": VInt(self.component.size),
+            },
+            inputs={
+                "en": (cont_source, 1),
+                "in": (value_source, self.component.size),
+            },
+            outputs={
+                "out": (out_target, self.component.size)
+            }
+        )
+
+
 class SimpleComponentGenerator(ComponentGenerator, priority=0, components=TCComponent):
     def generate(self, module: VerilogModule):
         inputs = {}
@@ -500,7 +588,7 @@ class SimpleComponentGenerator(ComponentGenerator, priority=0, components=TCComp
                     if pos in self.base.sources_by_position:
                         inputs[name] = self.base.sources_by_position[pos], size
                     else:
-                        inputs[name] = module.get_constant(0, size), size
+                        inputs[name] = module.get_constant(size, 0), size
                 case Out(name, _, size):
                     if pos in self.base.targets_by_position:
                         outputs[name] = self.base.targets_by_position[pos], size

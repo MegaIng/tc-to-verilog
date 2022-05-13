@@ -1,13 +1,17 @@
 import os
 import re
 import sys
+from ast import literal_eval
 from collections import defaultdict
 from dataclasses import dataclass
-from functools import cached_property
+from datetime import datetime
+from functools import cached_property, partial
+from operator import attrgetter
 from pathlib import Path
 from pprint import pprint
 
-from tc2verilog.base_tc_component import TCComponent, TCPin, IOComponent, Size, NeedsClock as _NeedsClock
+from tc2verilog.base_tc_component import TCComponent, TCPin, IOComponent, Size, NeedsClock as _NeedsClock, In, InSquare, \
+    Out, OutTri, Unbuffered
 
 # noinspection PyUnresolvedReferences
 import save_monger
@@ -75,7 +79,10 @@ IGNORE_COMPONENTS = {
 
 def normalize_name(name):
     non_legal = r"[^a-zA-Z0-9_\$]"
-    name = re.sub(non_legal, "_", name)
+    name = re.sub(non_legal, "_", str(name))
+    non_legal_starts = r"[^a-zA-Z]"
+    if re.match(non_legal_starts, name):
+        name = "_" + name
     return name
 
 
@@ -86,6 +93,10 @@ class TCSchematic:
     @property
     def save_version(self):
         return self.raw_nim_data["save_version"]
+
+    @property
+    def dependencies(self):
+        return self.raw_nim_data["dependencies"]
 
     @property
     def custom_component_id(self):
@@ -104,7 +115,7 @@ class TCSchematic:
             if c["kind"] in IGNORE_COMPONENTS:
                 continue
             if c["kind"] == "Custom":
-                obj = custom_component_classes[c["custom_id"]](c)
+                obj = Custom(c)
             else:
                 obj = getattr(tc_components, c["kind"])(c)
             if len(self.wires_by_position[obj.above_topleft]) == 1:
@@ -160,50 +171,147 @@ class TCSchematic:
         return pins
 
 
-CC_PATHS = {}
+PIN_TYPES = {
+    0: None,
+    1: None,  # Shape
+    2: partial(In, size=1),
+    3: partial(In, size=8),
+    4: partial(In, size=16),
+    5: partial(In, size=32),
+    6: partial(In, size=64),
+    7: partial(InSquare, size=1),
+    8: partial(InSquare, size=8),
+    9: partial(InSquare, size=16),
+    10: partial(InSquare, size=32),
+    11: partial(InSquare, size=64),
+    12: partial(Out, size=1),
+    13: partial(Out, size=8),
+    14: partial(Out, size=16),
+    15: partial(Out, size=32),
+    16: partial(Out, size=64),
+    17: partial(OutTri, size=1),
+    18: partial(OutTri, size=8),
+    19: partial(OutTri, size=16),
+    20: partial(OutTri, size=32),
+    21: partial(OutTri, size=64),
+    22: partial(Unbuffered, size=1),
+    23: partial(Unbuffered, size=8),
+    24: partial(Unbuffered, size=16),
+    25: partial(Unbuffered, size=32),
+    26: partial(Unbuffered, size=64),
+    27: None,  # 1 bit memory probe
+    28: None,  # word memory probe
+    29: None,  # 1 bit wire probe
+    30: None,  # word wire probe
+}
+
+
+@dataclass
+class CustomComponentShape:
+    raw: list[list[int]]
+
+    def pair_up(self, schematic: TCSchematic):
+        io_components = []
+        for component in schematic.components:
+            if isinstance(component, IOComponent):
+                io_components.append(component)
+        io_components.sort(key=attrgetter('pos'))
+        # print(list(map(attrgetter('pos'), io_components)))
+        # pprint([[self.raw[j][i] for j in range(len(self.raw))] for i in range(len(self.raw[0]))], width=100)
+        i = 0
+        for x, row in enumerate(self.raw):
+            for y, v in enumerate(row):
+                assert v in PIN_TYPES, v
+                if PIN_TYPES[v] is None:
+                    continue
+                yield PIN_TYPES[v], (x - 15, y - 15), io_components[i]
+                i += 1
+
+
+@dataclass
+class CustomComponentInfo:
+    cid: int
+    path: Path
+    shape: CustomComponentShape | None
+
+    @cached_property
+    def schematic(self):
+        return TCSchematic(save_monger.parse_state(self.path.read_bytes()))
+
+    @cached_property
+    def paired_pins(self):
+        return tuple(self.shape.pair_up(self.schematic))
+
+    @cached_property
+    def rel_path(self):
+        return self.path.relative_to(SCHEMATICS / "component_factory").parent
+
+
+CUSTOM_COMPONENTS: dict[int, CustomComponentInfo] = {}
 
 
 def _load_cc_meta():
+    custom_designs = {}
+    cd_path = BASE_PATH / "custom_designs.txt"
+    if cd_path.is_file():
+        lines = cd_path.read_text().splitlines()
+        for data, shape, _ in zip(lines[0::3], lines[1::3], lines[2::3]):
+            cid, time = map(literal_eval, data.split())
+            shape = literal_eval(shape)
+            custom_designs[cid] = time, CustomComponentShape(shape)
+    else:
+        print("custom_designs.txt is not generated. Can't use custom components. Type "
+              "`export_custom_designs` into the console, which is accessed in the main menu by pressing `q`")
+
     base = SCHEMATICS / "component_factory"
     for circuit_path in base.rglob("circuit.data"):
         meta = save_monger.parse_state(circuit_path.read_bytes(), True)
-        CC_PATHS[meta["save_version"]] = circuit_path
+        shape = None
+        if meta['save_version'] in custom_designs:
+            mtime = int(circuit_path.stat().st_mtime)
+            if mtime > custom_designs[meta['save_version']][0]:
+                print(f"Custom Component {str(circuit_path.relative_to(base).parent)!r} was modified after"
+                      f" custom_designs.txt was generated")
+            else:
+                shape = custom_designs[meta['save_version']][1]
+        CUSTOM_COMPONENTS[meta['save_version']] = CustomComponentInfo(meta['save_version'], circuit_path, shape)
 
 
-CC_SCHEMATICS = {}
-
-
-def _get_cc_schematic(cc_id):
-    if not CC_PATHS:
+def get_cc_info(cc_id) -> CustomComponentInfo:
+    if not CUSTOM_COMPONENTS:
         _load_cc_meta()
-    if cc_id not in CC_SCHEMATICS:
-        assert cc_id in CC_PATHS, cc_id
-        CC_SCHEMATICS[cc_id] = TCSchematic(save_monger.parse_state(CC_PATHS[cc_id].read_bytes()))
-    return CC_SCHEMATICS[cc_id]
+    return CUSTOM_COMPONENTS[cc_id]
 
 
 custom_component_classes = {}
 
 
-class CustomComponent(_NeedsClock):
+@dataclass
+class Custom(_NeedsClock):
+
     def __init_subclass__(cls, **kwargs):
         custom_component_classes[kwargs["custom_id"]] = cls
 
     @cached_property
     def schematic(self) -> TCSchematic:
-        return _get_cc_schematic(self.custom_id)
+        return get_cc_info(self.custom_id).schematic
 
     @cached_property
     def custom_id(self) -> int:
         return self.raw_nim_data["custom_id"]
 
-    @property
+    @cached_property
+    def custom_info(self) -> CustomComponentInfo:
+        return get_cc_info(self.custom_id)
+
+    @cached_property
     def pins(self):
-        raise ValueError(f"This custom component {type(self).__name__} does not have it's pins specified")
+        return [f(name=normalize_name(c.io_name), rel_pos=rel_pos)
+                for (f, rel_pos, c) in self.custom_info.paired_pins]
 
     @property
     def verilog_name(self):
-        return f"Custom_{self.custom_id}"
+        return normalize_name(self.custom_info.rel_path)
 
 
 ON_WSL = False

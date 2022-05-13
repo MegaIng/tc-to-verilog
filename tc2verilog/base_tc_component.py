@@ -2,6 +2,8 @@ import sys
 from dataclasses import dataclass
 from typing import ClassVar, TypeAlias, Literal, TYPE_CHECKING, TypeVar, Callable
 
+from pip._vendor.distlib.util import cached_property
+
 Size: TypeAlias = Literal[1, 8, 16, 32, 64]
 
 
@@ -120,8 +122,19 @@ class NeedsClock(TCComponent):
     needs_clock: bool = True
 
 
+BAD_IO_NAMES = {"", "Input", "Output"}
+
+
 class IOComponent(TCComponent):
     size: ClassVar[Size]
+
+    @cached_property
+    def io_name(self):
+        if self.custom_string_raw:
+            direction, _, name = self.custom_string_raw.partition(':')
+            if name not in BAD_IO_NAMES:
+                return name
+        return self.name_id
 
 
 if TYPE_CHECKING:
@@ -166,7 +179,10 @@ def _generate_sized_class(base, i, size: int):
             else:
                 return sp | size_param
 
-    SizedSubclass.__name__ = f"{base.__name__.removeprefix('_')}{size}"
+    if 'SS' in base.__name__:
+        SizedSubclass.__name__ = base.__name__.removeprefix('_').replace('SS', str(size))
+    else:
+        SizedSubclass.__name__ = f"{base.__name__.removeprefix('_')}{size}"
     SizedSubclass.__qualname__ = base.__qualname__.replace(base.__name__, SizedSubclass.__name__)
     SizedSubclass.size = size
 
