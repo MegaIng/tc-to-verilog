@@ -1,206 +1,529 @@
-from collections import defaultdict
-from dataclasses import dataclass
-from functools import cached_property
-from pathlib import Path
-from typing import Iterator
+from __future__ import annotations
 
-from tc2verilog.base_tc_component import TCComponent, TCPin, In, OutTri, Out, IOComponent, NeedsClock
-from tc2verilog.memory_files import MemoryFile
-from tc2verilog.tc_schematics import TCSchematic
+from _operator import itemgetter
+from abc import abstractmethod, ABC
+from builtins import abs
+from collections import defaultdict
+from dataclasses import dataclass, field
+from typing import Iterator, TypeAlias, Callable, Any
+
+from tc2verilog.base_tc_component import TCComponent, In, Out, OutTri, Unbuffered
+from tc2verilog.tc_components import _Input, _SimpleInput, Input1_1B, Output1_1B, _SimpleOutput
+from tc2verilog.tc_schematics import TCSchematic, normalize_name
+
+"""
+A generalized Component has from the perspective of verilog these elements:
+
+- verilog_name
+  the direct name of the file and corresponding submodule
+- parameters
+  dictionary of key-value pairs, all strings
+- pins
+  - inputs
+  - outputs
+  - bidirectional
+- ports
+  - io ports
+    - normal input
+    - normal output
+    - tristate output
+    - bidirectional
+  - meta ports
+    - clk, rst, gpio, ...
+
+A Generator handles some specific type of objects and generates, possibly calling sub generators in the process,
+ a list of VerilogStatements
+
+VerilogModule
+-> add_wire(name: str) -> VerilogWire
+-> add_in_port(name: str, size: int) -> SignalSource
+-> add_out_port(name: str, size: int) -> SignalTarget
+-> add_submodule(component: TCComponent, arguments: list[tuple[Port, SignalSource | SignalTarget]])
+-> add_assign(targets: list[SignalTarget], sources: list[SignalSource])
+
+VerilogStatements
+- VerilogDeclarations/VerilogPortDeclarations
+  - name (for VerilogPortDeclarations also gets added as an entry in the main port list)
+  - type
+  - size
+- VerilogAssign
+  - sources: list[tuple[SignalSources, int, int]]
+  - target: SignalTarget
+- VerilogSubmodule
+  - component: TCComponent
+    - verilog_name
+    - parameters
+  - arguments: list[tuple[Port, SignalSource | SignalTarget]]
+
+SignalSources are:
+- Normal Wires
+- Tristate Wires
+- Input ports (normal input and bidirectional)
+- FixedValueSource
+
+SignalTargets are:
+- Normal wires
+- Tristate wires
+- output ports (normal output, tristate output x2, bidirectional)
+
+"""
+
+
+class VerilogValue(ABC):
+    @abstractmethod
+    def get_verilog(self, module: VerilogModule) -> str:
+        pass
 
 
 @dataclass
-class Wire:
+class VInt(VerilogValue):
+    value: int
+    size: int = None
+
+    def get_verilog(self, module: VerilogModule):
+        if self.size is None:
+            return str(self.value)
+        else:
+            return f"{self.size}'d{self.value}"
+
+
+@dataclass
+class VUUID(VerilogValue):
+    value: int
+
+    def get_verilog(self, module: VerilogModule):
+        return f"{self.value} ^ UUID"
+
+
+@dataclass
+class VString(VerilogValue):
+    value: str
+
+    def get_verilog(self, module: VerilogModule):
+        return f'"{self.value}"'
+
+
+@dataclass(eq=False)
+class Target:
+    name: str
+
+
+@dataclass(eq=False)
+class Source:
+    name: str
+
+
+@dataclass
+class FullOutput:
+    modules: dict[str, VerilogModule] = field(default_factory=dict)
+    component_info: defaultdict[str, list[dict[str, Any]]] = field(default_factory=lambda: defaultdict(list))
+    pin_info: defaultdict[str, dict[str, dict[str, Any]]] = field(default_factory=lambda: defaultdict(dict))
+
+    def add_component_info(self, module_name: str, info: dict[str, Any]):
+        self.component_info[module_name].append(info)
+
+    def add_pin_info(self, module_name: str, pin_name: str, info: dict[str, Any]):
+        assert pin_name not in self.pin_info[module_name], pin_name
+        self.pin_info[module_name][pin_name] = info
+
+    def add_module(self, name: str) -> VerilogModule:
+        if name in self.modules:
+            raise ValueError(f"Duplicate module name {name!r}")
+        self.modules[name] = m = VerilogModule(self, name)
+        return m
+
+
+STANDARD_PARAMETERS_TO_VERILOG: dict[str, Callable[[Any], VerilogValue]] = {
+    "BIT_WIDTH": VInt,
+    "value": lambda t: VInt(*t)
+}
+
+STANDARD_PARAMETERS_TO_JSON: dict[str, Callable[[Any], Any] | None] = {
+    "BIT_WIDTH": None,
+    "value": lambda t: t[0]
+}
+
+
+@dataclass
+class _VerilogWire:
+    name: str
+    output: Source
+    input: Target
+    size: int = 1
+
+    def get_verilog(self, module: VerilogModule):
+        return f"wire [{self.size - 1}:0] {self.name};"
+
+
+@dataclass
+class _VerilogInPort:
     name: str
     size: int
-    sources: list[tuple[TCComponent, TCPin, int]]
-    targets: list[tuple[TCComponent, TCPin, int]]
+    output: Source
 
-    @property
-    def subwires(self):
-        if len(self.sources) > 1:
-            return [self.name, *(f"{self.name}_{i}" for i in range(len(self.sources)))]
-        else:
-            return [self.name]
-
-    def name_for(self, desc: tuple[TCComponent, TCPin]):
-        if len(self.sources) > 1:
-            for i, (tcc, tcp, _) in enumerate(self.sources):
-                if desc == (tcc, tcp):
-                    return f"{self.name}_{i}"
-            raise ValueError(desc, [(tcc.name, type(tcc).__name__, tcp.name) for tcc, tcp, _ in self.sources])
-        else:
-            return self.name
+    def get_verilog(self, module: VerilogModule):
+        return f"input wire [{self.size - 1}:0] {self.name};"
 
 
-class VerilogBuilder:
-    pass
+@dataclass
+class _VerilogOutPort:
+    name: str
+    size: int
+    input: Target
+
+    def get_verilog(self, module: VerilogModule):
+        return f"output wire [{self.size - 1}:0] {self.name};"
+
+
+@dataclass
+class _VerilogSubmodule:
+    module_name: str
+    name: str
+    parameters: dict[str, VerilogValue]
+    inputs: dict[str, tuple[Source, int]]
+    outputs: dict[str, tuple[Target, int]]
+
+    def _format_parameters(self, module: VerilogModule) -> str:
+        assert all(isinstance(v, VerilogValue) for v in self.parameters.values()), self.parameters
+        if not self.parameters:
+            return ""
+        out = [f'.{name}({value.get_verilog(module)})' for name, value in self.parameters.items()]
+        return f' # ({", ".join(out)})'
+
+    def _format_ports(self, module: VerilogModule) -> str:
+        out = []
+        for name, (source, size) in self.inputs.items():
+            out.append(f'.{name}({module.get_source_verilog(source, size)})')
+        for name, (target, size) in self.outputs.items():
+            out.append(f'.{name}({module.get_target_verilog(target, size)})')
+        return f'({", ".join(out)})'
+
+    def get_verilog(self, module: VerilogModule) -> str:
+        return f"{self.module_name}{self._format_parameters(module)} {self.name} {self._format_ports(module)};"
+
+
+@dataclass
+class _VerilogAssign:
+    target: Target
+    sources: list[Source]
+
+    def get_verilog(self, module: VerilogModule):
+        ts = module.get_target_size(self.target)
+        sources = [module.get_source_verilog(s, ts) for s in self.sources]
+        return f"assign {module.get_target_verilog(self.target, ts)} = {' | '.join(sources)};"
 
 
 @dataclass
 class VerilogModule:
-    module_name: str
-    schematic: TCSchematic
-    counter: int = 0
+    full_output: FullOutput
+    name: str
+    _source_definitions: dict[Source, _VerilogWire | _VerilogInPort | _VerilogOutPort] = field(default_factory=dict)
+    _target_definitions: dict[Target, _VerilogWire | _VerilogInPort | _VerilogOutPort] = field(default_factory=dict)
+    _assigns: dict[Target, _VerilogAssign] = field(default_factory=dict)
+    _wires: list[_VerilogWire] = field(default_factory=list)
+    _ports: list[_VerilogInPort | _VerilogOutPort] = field(default_factory=list)
+    _submodules: list[_VerilogSubmodule] = field(default_factory=list)
 
-    _line_sep = "\n    "
+    def get_constant(self, size: int, value: int) -> Source:
+        raise NotImplementedError
 
-    @cached_property
-    def _verilog_wires(self) -> tuple[dict[tuple[int, int], Wire], dict[str, Wire]]:
-        groups = defaultdict(list)
-        for pos, pin in self.schematic.pin_map.items():
-            if self.schematic.wire_map[pos]:
-                groups[frozenset(self.schematic.wire_map[pos])].append((pos, pin))
-        wires_by_position = {}
-        wires_by_name = {}
-        for i, group in enumerate(groups.values()):
-            sources = [p[1] for p in group if isinstance(p[1][1], (Out, OutTri))]
-            targets = [p[1] for p in group if isinstance(p[1][1], (In))]
-            assert len(group) == len(sources) + len(targets), (group)
-            sizes = {p[1].size for p in sources}
-            size = max(sizes, default=1)
-            wire = wires_by_name[f"wire{i}"] = Wire(f"wire{i}", size, sources, targets)
-            for pos, _ in group:
-                wires_by_position[pos] = wire
-        return wires_by_position, wires_by_name
+    def add_wire(self, name: str) -> (Target, Source):
+        self._wires.append(w := _VerilogWire(name, s := Source(name), t := Target(name)))
+        self._source_definitions[s] = w
+        self._target_definitions[t] = w
+        return t, s
 
-    @cached_property
-    def wires_by_position(self) -> dict[tuple[int, int], Wire]:
-        return self._verilog_wires[0]
+    def add_output(self, name: str, size: int) -> Target:
+        self._ports.append(p := _VerilogOutPort(name, size, t := Target(name)))
+        self._target_definitions[t] = p
+        return t
 
-    @cached_property
-    def wires_by_name(self) -> dict[str, Wire]:
-        return self._verilog_wires[1]
+    def add_input(self, name: str, size: int) -> Source:
+        self._ports.append(p := _VerilogInPort(name, size, s := Source(name)))
+        self._source_definitions[s] = p
+        return s
 
-    def _build_wires(self):
-        wires = [
-            f"wire [{wire.size - 1}:0] {name};"
-            for wire in self.wires_by_name.values()
-            for name in wire.subwires
-        ]
-        tri_state_wires = [
-            f"assign {wire.name} = {' | '.join(wire.subwires[1:])};"
-            for wire in self.wires_by_name.values()
-            if len(wire.sources) > 1
-        ]
-        return "\n    ".join(wires), "\n     ".join(tri_state_wires)
+    def _register_target(self, source: Source, size: int = None):
+        obj = self._source_definitions[source]
 
-    def _connect_wire_port(self, wire: Wire, pin: TCPin, pin_name, desc):
-        if isinstance(pin, Out):
-            target, source = wire, pin
-            target_name = wire.name_for(desc)
-            source_name = pin_name
+    def _register_source(self, target: Target, size: int = None):
+        obj = self._target_definitions[target]
+        if isinstance(obj, _VerilogWire):
+            if size is not None:
+                obj.size = max(obj.size, size)
+
+    def add_assign(self, source: Source, target: Target):
+        if target in self._assigns:
+            self._assigns[target].sources.append(source)
         else:
-            target, source = pin, wire
-            target_name = pin_name
-            source_name = wire.name
-        if target.size > source.size:
-            value = f"{{{{{target.size - source.size}{{1'b0}}}}, {source_name}}}"
-        elif target.size == source.size:
-            value = source_name
+            self._assigns[target] = _VerilogAssign(target, [source])
+        self._register_target(source, self.get_target_size(target))
+        self._register_source(target, self.get_source_size(source))
+
+    def add_submodule(self, module_name: str, name: str, parameters: dict[str, VerilogValue],
+                      inputs: dict[str, tuple[Source, int]], outputs: dict[str, tuple[Target, int]]):
+        self._submodules.append(_VerilogSubmodule(module_name, name, parameters, inputs, outputs))
+        for port, (source, size) in inputs.items():
+            self._register_target(source, size)
+        for port, (target, size) in outputs.items():
+            self._register_source(target, size)
+
+    def split_source(self, source: Source) -> (Source, Target):
+        """
+        original_source -----------------------------------------------> original_users
+        original_source --------> split_source ?? split_target --wire--> original_users
+        """
+        raise NotImplementedError
+
+    def split_target(self, target: Target) -> (Source, Target):
+        """
+        original_users -----------------------------------------------> original_target
+        original_users --wire--> split_source ?? split_target --------> original_target
+        """
+        raise NotImplementedError
+
+    def get_source_verilog(self, source: Source, size: int) -> str:
+        obj = self._source_definitions[source]
+        if obj.size == size:
+            return source.name
+        elif obj.size < size:
+            return f"{{{{{size - obj.size}{{1'b0}}}}, {source.name}}}"
         else:
-            value = f"{source_name}[{target.size - 1}:0]"
-        return f"assign {target_name} = {value};"
+            return f"{source.name}[{size - 1}:0]"
 
-    def _build_ports(self):
-        ports = [("clk", "input wire"), ("rst", "input wire")]
-        port_wires = []
-        for name, (com, pin, pos) in self.schematic.named_io_pin_by_name.items():
-            if pos in self.wires_by_position:
-                wire = self.wires_by_position[pos]
-            else:
-                wire = None
-            if isinstance(pin, Out):
-                ports.append((name, f"input wire [{pin.size - 1}:0]"))
-            else:
-                ports.append((name, f"output wire [{pin.size - 1}:0]"))
-            if wire:
-                port_wires.append(self._connect_wire_port(wire, pin, name, (com, pin)))
-        return (
-            ", ".join(n for n, _ in ports),
-            self._line_sep.join(f'{t} {n};' for n, t in ports),
-            self._line_sep.join(port_wires)
-        )
+    def get_target_size(self, target: Target) -> int:
+        obj = self._target_definitions[target]
+        return obj.size
 
-    def _build_parameters(self, component):
-        if not component.parameters:
-            return ""
-        return f" # ({', '.join(f'.{n}({v})' for n, v in component.parameters.items())})"
+    def get_source_size(self, source: Source) -> int:
+        obj = self._source_definitions[source]
+        return obj.size
 
-    def _connect_wire_submodule(self, wire: Wire, port: TCPin, comp):
-        if isinstance(port, In):
-            if port.size > wire.size:
-                value = f"{{{{{port.size - wire.size}{{1'b0}}}}, {wire.name}}}"
-            elif port.size == wire.size:
-                value = wire.name
-            else:
-                value = f"{wire.name}[{port.size - 1}:0]"
+    def get_target_verilog(self, target: Target, size: int) -> str:
+        obj = self._target_definitions[target]
+        if obj.size == size:
+            return target.name
+        elif obj.size > size:
+            return f"{target.name}[{size - 1}:0]"
         else:
-            if port.size > wire.size:
-                raise ValueError("This should never happen; the wires should be large enough to accommodate all inputs")
-            elif port.size == wire.size:
-                value = wire.name_for((comp, port))
-            else:
-                value = f"{wire.name_for((comp, port))}[{port.size-1}:0]"
-        value = f".{port.name}({value})"
-        return value
+            raise NotImplementedError(target, obj, size)
 
-    def _build_submodule(self, component: TCComponent):
-        arguments = [
-            self._connect_wire_submodule(self.wires_by_position[pos], p, component)
-            if t else f".{p.name}({p.size}'d0)"
-            for pos, p in component.positioned_pins
-            if (t := (pos in self.wires_by_position)) or isinstance(p, In)
-        ]
-        if isinstance(component, NeedsClock):
-            arguments = ['.clk(clk)', '.rst(rst)'] + arguments
-        self.counter += 1
-        params = self._build_parameters(component)
-        if component.name is not None:
-            return f"TC_{component.verilog_name}{params} {component.name} ({', '.join(arguments)});"
-        else:
-            return f"TC_{component.verilog_name}{params} {type(component).__name__}_{self.counter} ({', '.join(arguments)});"
+    def add_component_info(self, info: dict[str, Any]):
+        self.full_output.add_component_info(self.name, info)
 
-    def _build_submodules(self):
-        return self._line_sep.join(
-            self._build_submodule(component)
-            for component in self.schematic.components
-            if not isinstance(component, IOComponent)
-        )
+    def add_pin_info(self, pin_name: str, info: dict[str, Any]):
+        self.full_output.add_pin_info(self.name, pin_name, info)
 
-    def full_verilog(self) -> str:
-        module_name = self.module_name
-        port_names, port_decls, port_wires_assigns = self._build_ports()
-        wire_declarations, tri_state_joins = self._build_wires()
-        sub_modules = self._build_submodules()
+    def get_verilog(self) -> str:
+        ports = ', '.join(('clk', 'rst',
+                           *(p.name for p in self._ports)))
+        port_definitions = '\n    '.join((
+            'input wire clk;',
+            'input wire rst;',
+            *(p.get_verilog(self) for p in self._ports)))
+        wire_definitions = '\n    '.join(w.get_verilog(self) for w in self._wires)
+        submodules = '\n    '.join(s.get_verilog(self) for s in self._submodules)
+        assigns = '\n    '.join(a.get_verilog(self) for a in self._assigns.values())
         return f"""
-module {module_name}(
-    {port_names}
+module {self.name}(
+    {ports}
 );
-    {port_decls}
-
-    {wire_declarations}
+    parameter UUID = 0;
+    parameter NAME = "";
+    {port_definitions}
     
-    {tri_state_joins}
-
-    {port_wires_assigns}
-
-    {sub_modules}
-
+    {wire_definitions}
+    
+    {assigns}
+    
+    {submodules}
+    
 endmodule
 """
 
-    def memory_files(self) -> Iterator[MemoryFile]:
-        for component in self.schematic.components:
-            yield from component.memory_files
+
+@dataclass
+class SchematicGenerator:
+    schematic: TCSchematic
+    sources_by_position: dict[tuple[int, int], Source] = field(default=None, init=False, repr=False, compare=False)
+    targets_by_position: dict[tuple[int, int], Target] = field(default=None, init=False, repr=False, compare=False)
+
+    def generate(self, module: VerilogModule):
+        self.sources_by_position = {}
+        self.targets_by_position = {}
+        for i, tc_wire in enumerate(self.schematic.wire_bundles):
+            target, source = module.add_wire(tc_wire.get_safe_name(i))
+            for p in tc_wire.positions:
+                self.sources_by_position[p] = source
+                self.targets_by_position[p] = target
+
+        for i, tc_component in enumerate(self.schematic.components):
+            self.get_generator(i, tc_component).generate(module)
+
+    def get_generator(self, i: int, comp: TCComponent) -> ComponentGenerator:
+        matching = []
+        for p, ts, cls in generator_registry:
+            if isinstance(comp, ts):
+                matching.append((p, cls))
+        cutoff = max(matching, key=itemgetter(0), default=0)[0]
+        matching = [cls for p, cls in matching if p >= cutoff]
+        if len(matching) == 0:
+            raise ValueError(f"No generator found for {type(comp).__name__}")
+        if len(matching) > 1:
+            raise ValueError(f"Multiple generators found for {type(comp).__name__} with same priority: {matching}")
+        return matching[0](i, self, comp)
 
 
-def output_verilog(out_folder: Path, module_name: str, schematic: TCSchematic, schematic_folder=None):
-    out_folder.mkdir(parents=True, exist_ok=True)
+generator_registry: list[
+    tuple[float, type | tuple[type, ...], Callable[[int, SchematicGenerator, TCComponent], ComponentGenerator]]] = []
 
-    module = VerilogModule(module_name, schematic)
 
-    (out_folder / f"{module_name}.v").write_text(module.full_verilog())
+@dataclass
+class ComponentGenerator(ABC):
+    i: int
+    base: SchematicGenerator
+    component: TCComponent
 
-    for file in module.memory_files():
-        (out_folder / file.out_file).write_bytes(file.get_padded_content(schematic_folder))
+    def __init_subclass__(cls, **kwargs):
+        if "components" in kwargs:
+            generator_registry.append((kwargs.pop("priority"), kwargs.pop("components"), cls))
+
+    def output_component_info(self, module: VerilogModule, **extra):
+        info = {
+            "kind": type(self.component).__name__,
+            "id": hex(self.component.permanent_id),
+            "name": self.component.name_id,
+            "position": self.component.pos,
+            "rotation": self.component.rotation,
+        }
+        info.update(extra)
+        module.add_component_info(info)
+
+    @abstractmethod
+    def generate(self, module: VerilogModule):
+        raise NotImplementedError
+
+
+class SimpleInputGenerator(ComponentGenerator, priority=1, components=_SimpleInput):
+    def generate(self, module: VerilogModule):
+        for pos, port in self.component.positioned_pins:
+            match port:
+                case Out(name, _, size):
+                    source = module.add_input(pin_name := f"{self.component.permanent_id}_{name}", size)
+                    target = self.base.targets_by_position[pos]
+                    module.add_assign(source, target)
+                    module.add_pin_info(pin_name, {
+                        'position': pos,
+                        'bit_width': size,
+                        'kind': "input",
+                        'name': name
+                    })
+                case _:
+                    raise ValueError(port)
+
+
+class SimpleOutputGenerator(ComponentGenerator, priority=1, components=_SimpleOutput):
+    def generate(self, module: VerilogModule):
+        for pos, port in self.component.positioned_pins:
+            match port:
+                case In(name, _, size):
+                    target = module.add_output(pin_name := f"{self.component.permanent_id}_{name}", size)
+                    source = self.base.sources_by_position[pos]
+                    module.add_assign(source, target)
+                    module.add_pin_info(pin_name, {
+                        'position': pos,
+                        'bit_width': size,
+                        'kind': "output",
+                        'name': name
+                    })
+                case _:
+                    raise ValueError(port)
+
+
+class ArchInputGenerator(ComponentGenerator, priority=1, components=Input1_1B):
+    def generate(self, module: VerilogModule):
+        (cont_pos, cont_port), (value_pos, value_port) = self.component.positioned_pins
+
+        source = self.base.sources_by_position[cont_pos]
+        target = module.add_output(f"arch_in_control", 1)
+        module.add_assign(source, target)
+        module.add_pin_info("arch_in_control", {
+            'position': cont_pos,
+            'bit_width': 1,
+            'kind': "output",
+            'name': f"arch_in_control"
+        })
+
+        source = module.add_input(f"arch_in_value", 8)
+        target = self.base.targets_by_position[value_pos]
+        module.add_assign(source, target)
+        module.add_pin_info("arch_in_value", {
+            'position': value_pos,
+            'bit_width': 8,
+            'kind': "input",
+            'name': f"arch_in_value"
+        })
+
+
+class ArchOutputGenerator(ComponentGenerator, priority=1, components=Output1_1B):
+    def generate(self, module: VerilogModule):
+        (cont_pos, cont_port), (value_pos, value_port) = self.component.positioned_pins
+
+        source = self.base.sources_by_position[cont_pos]
+        target = module.add_output(f"arch_out_control", 1)
+        module.add_assign(source, target)
+        module.add_pin_info("arch_out_control", {
+            'position': cont_pos,
+            'bit_width': 1,
+            'kind': "output",
+            'name': f"arch_out_control"
+        })
+
+        source = self.base.sources_by_position[value_pos]
+        target = module.add_output(f"arch_out_value", 8)
+        module.add_assign(source, target)
+        module.add_pin_info("arch_out_value", {
+            'position': value_pos,
+            'bit_width': 8,
+            'kind': "output",
+            'name': f"arch_out_value"
+        })
+
+
+class SimpleComponentGenerator(ComponentGenerator, priority=0, components=TCComponent):
+    def generate(self, module: VerilogModule):
+        inputs = {}
+        outputs = {}
+        for pos, port in self.component.positioned_pins:
+            match port:
+                case In(name, _, size):
+                    if pos in self.base.sources_by_position:
+                        inputs[name] = self.base.sources_by_position[pos], size
+                    else:
+                        inputs[name] = module.get_constant(0, size), size
+                case Out(name, _, size):
+                    if pos in self.base.targets_by_position:
+                        outputs[name] = self.base.targets_by_position[pos], size
+                case _:
+                    raise NotImplementedError(port)
+
+        module.add_submodule(
+            module_name=(m_name := "TC_" + self.component.verilog_name),
+            name=(v_name := normalize_name(f"{self.component.verilog_name}_{self.component.name_id}_{self.i}")),
+            parameters={
+                "UUID": VUUID(self.component.permanent_id),
+                "NAME": VString(self.component.name_id),
+                **{name: STANDARD_PARAMETERS_TO_VERILOG[name](v)
+                   for name, v in self.component.parameters.items()}
+            },
+            inputs=inputs,
+            outputs=outputs
+        )
+        parameters = {name: f(v) for name, v in self.component.parameters.items()
+                      if (f := STANDARD_PARAMETERS_TO_JSON[name]) is not None}
+        self.output_component_info(
+            module,
+            module_name=m_name,
+            verilog_name=v_name,
+            **parameters
+        )

@@ -33,7 +33,7 @@ class OutTri(Out):
 
 
 @dataclass
-class Unbuffered(Out, In):
+class Unbuffered(TCPin):
     pass
 
 
@@ -67,7 +67,15 @@ class TCComponent:
         return self.raw_nim_data["permanent_id"]
 
     @property
-    def custom_string(self) -> str:
+    def setting_1(self) -> int:
+        return self.raw_nim_data["setting_1"]
+
+    @property
+    def setting_2(self) -> int:
+        return self.raw_nim_data["setting_2"]
+
+    @property
+    def custom_string_raw(self) -> str:
         return self.raw_nim_data["custom_string"]
 
     @property

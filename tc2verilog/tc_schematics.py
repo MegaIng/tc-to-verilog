@@ -46,6 +46,24 @@ class TCWire:
         return self.path[-1]
 
 
+@dataclass(eq=False)
+class WireBundle:
+    wires: list[TCWire]
+
+    @property
+    def positions(self):
+        return {p for w in self.wires for p in (w.start, w.end)}
+
+    def get_safe_name(self, i: int):
+        return normalize_name(self.get_name(i))
+
+    def get_name(self, i: int):
+        for wire in self.wires:
+            if wire.comment != "":
+                return f"{wire.comment} {i}"
+        return f"wire {i}"
+
+
 IGNORE_COMPONENTS = {
     "Screen",
     "ProbeMemoryBit",
@@ -64,8 +82,6 @@ def normalize_name(name):
 @dataclass(eq=False)
 class TCSchematic:
     raw_nim_data: dict
-    main_io_mapping: dict[str, tuple[str, dict[str, str] | None]] | None = None
-    cc_io_mapping: dict[str, str] | None = None
 
     @property
     def save_version(self):
@@ -101,12 +117,8 @@ class TCSchematic:
         return out
 
     @classmethod
-    def open_level(cls, level_name: str, save_name: str, *,
-                   main_io_mapping: dict[str, tuple[str, dict[str, str] | None]] = None,
-                   cc_io_mapping: dict[str, str] = None,
-                   ):
-        return cls(save_monger.parse_state((SCHEMATICS / level_name / save_name / "circuit.data").read_bytes()),
-                   main_io_mapping, cc_io_mapping)
+    def open_level(cls, level_name: str, save_name: str):
+        return cls(save_monger.parse_state((SCHEMATICS / level_name / save_name / "circuit.data").read_bytes()), )
 
     @cached_property
     def wire_map(self) -> dict[tuple[int, int], set[tuple[int, int]]]:
@@ -129,6 +141,16 @@ class TCSchematic:
         return out
 
     @cached_property
+    def wire_bundles(self) -> list[WireBundle]:
+        out = []
+        seen = set()
+        for wire_set in self.wires_by_position.values():
+            if wire_set and seen.isdisjoint(wire_set):
+                seen.add(next(iter(wire_set)))
+                out.append(WireBundle(list(wire_set)))
+        return out
+
+    @cached_property
     def pin_map(self) -> dict[tuple[int, int], tuple[TCComponent, TCPin, int]]:
         pins = {}
         for com in self.components:
@@ -136,47 +158,6 @@ class TCSchematic:
                 assert pos not in pins, (pos, com)
                 pins[pos] = (com, pin, i)
         return pins
-
-    @cached_property
-    def named_io_com_by_name(self) -> dict[str, IOComponent]:
-        out = {}
-        for i, com in enumerate(self.components):
-            if isinstance(com, (IOComponent)):
-                if com.custom_string:
-                    name = normalize_name(com.custom_string.partition(':')[-1])
-                else:
-                    name = f"{type(com).__name__}x{com.x % 512:03}y{com.y % 512:03}"
-                out[name] = com
-        if self.main_io_mapping is not None:
-            assert len(self.main_io_mapping) == len(out), (list(out), list(self.main_io_mapping))
-            new_out = {}
-            for (base_name, (exp_io, _)), com in zip(self.main_io_mapping.items(), out.values()):
-                assert exp_io == type(com).__name__, (exp_io, type(com).__name__)
-                new_out[base_name] = com
-            out = new_out
-        return out
-
-    @cached_property
-    def named_io_pin_by_name(self) -> dict[str, tuple[IOComponent, TCPin, tuple[int, int]]]:
-        out = {}
-        for base_name, com in self.named_io_com_by_name.items():
-            for pos, pin in com.positioned_pins:
-                if self.main_io_mapping is not None and self.main_io_mapping[base_name][1] is not None:
-                    name = self.main_io_mapping[base_name][1][pin.name]
-                else:
-                    name = f"{base_name}_{pin.name}"
-                print(self.cc_io_mapping, name)
-                if self.cc_io_mapping is not None and name in self.cc_io_mapping:
-                    name = self.cc_io_mapping[name]
-                out[name] = com, pin, pos
-        return out
-
-    @cached_property
-    def named_io_com_by_position(self) -> dict[tuple[int, int], tuple[str, TCComponent]]:
-        out = {}
-        for name, com in self.named_io_com_by_name.items():
-            out[com.pos] = name, com
-        return out
 
 
 CC_PATHS = {}

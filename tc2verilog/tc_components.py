@@ -345,7 +345,7 @@ class Off(_TCComponent):
 
     @property
     def parameters(self):
-        return {"BIT_WIDTH": 1, "value": f"1'b{self.value}"}
+        return {"BIT_WIDTH": 1, "value": (self.value, 1)}
 
 
 class On(_TCComponent):
@@ -361,7 +361,7 @@ class On(_TCComponent):
 
     @property
     def parameters(self):
-        return {"BIT_WIDTH": 1, "value": f"1'b{self.value}"}
+        return {"BIT_WIDTH": 1, "value": (self.value, 1)}
 
 
 @_generate_sizes()
@@ -372,11 +372,11 @@ class _Constant(_TCComponent):
 
     @property
     def value(self):
-        return int(self.custom_string) & (2 ** 64 - 1) if self.custom_string else 0
+        return self.setting_1 & (2 ** 64 - 1)
 
     @property
     def parameters(self):
-        return {"BIT_WIDTH": self.size, "value": f"{self.size}'d{self.value}"}
+        return {"BIT_WIDTH": self.size, "value": (self.value, self.size)}
 
 
 # endregion
@@ -507,11 +507,11 @@ class _Counter(_NeedsClock):
 
     @property
     def value(self):
-        return int(self.custom_string)
+        return self.setting_1
 
     @property
     def parameters(self):
-        return {"count": f"{self.size}'d{self.value}"}
+        return {"count": (self.value, self.size)}
 
 
 @_generate_sizes()
@@ -568,11 +568,11 @@ class FastRam(_NeedsClock):
 
     @property
     def word_size(self) -> _Size:
-        return 8 * (2 ** int(self.custom_string.split(':')[1]))
+        return 8 * (2 ** self.setting_2)
 
     @property
     def byte_count(self) -> int:
-        return int(self.custom_string.split(':')[0])
+        return self.setting_1
 
     @property
     def word_count(self):
@@ -583,7 +583,6 @@ class FastRam(_NeedsClock):
         return {
             'BIT_WIDTH': self.word_size,
             'BIT_DEPTH': self.word_count,
-
         }
 
 
@@ -619,11 +618,11 @@ class Rom(_NeedsClock):
 
     @property
     def word_size(self) -> _Size:
-        return 8 * (2 ** int(self.custom_string.split(':')[1]))
+        return 8 * (2 ** self.setting_2)
 
     @property
     def byte_count(self) -> int:
-        return int(self.custom_string.split(':')[0])
+        return self.setting_1
 
     @property
     def word_count(self):
@@ -634,7 +633,7 @@ class Rom(_NeedsClock):
         return {
             'BIT_WIDTH': self.word_size,
             'BIT_DEPTH': self.word_count,
-            'ARG_SIG': f'"HEX_FILE_{self.name_id}=%s"',
+            'ARG_SIG': f'HEX_FILE_{self.name_id}=%s',
             'HEX_FILE': self.default_file_name,
 
         }
@@ -659,14 +658,14 @@ class Hdd(_NeedsClock):
 
     @property
     def word_count(self):
-        return int(self.custom_string) if self.custom_string else 256
+        return self.setting_1
 
     @property
     def parameters(self):
         return {
             'BIT_DEPTH': self.word_count,
-            'ARG_SIG': f'"HEX_FILE_{self.name_id}=%s"',
-            'HEX_FILE': f'"{self.default_file_name}"',
+            'ARG_SIG': f'HEX_FILE_{self.name_id}=%s',
+            'HEX_FILE': self.default_file_name,
         }
 
     @property
@@ -692,11 +691,11 @@ class DualLoadRam(_NeedsClock):
 
     @property
     def word_size(self) -> _Size:
-        return 8 * (2 ** int(self.custom_string.split(':')[1]))
+        return 8 * (2 ** self.setting_2)
 
     @property
     def byte_count(self) -> int:
-        return int(self.custom_string.split(':')[0])
+        return self.setting_1
 
     @property
     def word_count(self):
@@ -734,8 +733,8 @@ class Program8_1(_NeedsClock):
     def parameters(self):
         return {
             "BIT_DEPTH": 256,
-            "ARG_SIG": f'"HEX_FILE_{self.name_id}=%s"',
-            "HEX_FILE": f'"{self.default_file_name}"',
+            "ARG_SIG": f'HEX_FILE_{self.name_id}=%s',
+            "HEX_FILE": self.default_file_name,
         }
 
     @property
@@ -761,8 +760,8 @@ class Program8_4(_NeedsClock):
     def parameters(self):
         return {
             "BIT_DEPTH": 256,
-            "ARG_SIG": f'"HEX_FILE_{self.name_id}=%s"',
-            "HEX_FILE": f'"{self.default_file_name}"',
+            "ARG_SIG": f'HEX_FILE_{self.name_id}=%s',
+            "HEX_FILE": self.default_file_name,
         }
 
     @property
@@ -785,20 +784,24 @@ class ProgramWord(_NeedsClock):
 
     @property
     def word_size(self) -> _Size:
-        return 8 * (2 ** int(self.custom_string or 1))
+        return 8 * (2 ** self.setting_2)
+
+    @property
+    def byte_count(self) -> int:
+        return self.setting_1
 
     @property
     def parameters(self):
         return {
             "BIT_WIDTH": self.word_size,
             "BIT_DEPTH": 0,
-            "ARG_SIG": f'"HEX_FILE_{self.name_id}=%s"',
-            "HEX_FILE": f'"{self.default_file_name}"',
+            "ARG_SIG": f'HEX_FILE_{self.name_id}=%s',
+            "HEX_FILE": self.default_file_name,
         }
 
     @property
     def default_file_name(self):
-        return f'{self.name_id}.s65536.m{self.word_size}'
+        return f'{self.name_id}.s{self.byte_count}.m{self.word_size}'
 
     @property
     def memory_files(self):
@@ -833,7 +836,7 @@ class FileRom(_NeedsClock):
         return {
             "BIT_DEPTH": 256,
             "ARG_SIG": f'"HEX_FILE_{self.name_id}=%s"',
-            "HEX_FILE": f'"{self.default_file_name}"',
+            "HEX_FILE": f'{self.default_file_name}',
             "FILE_BYTES": self.file_size,
         }
 
@@ -891,7 +894,7 @@ class Input4Pin(_SimpleInput):
 
 
 @_generate_sizes(1, 8, 16, 32, 64)
-class _Input(_IOComponent):
+class _Input(_SimpleInput):
     pins = [
         _Out("value", (_size(1, 1, 2, 2, 3), 0), _size),
     ]
