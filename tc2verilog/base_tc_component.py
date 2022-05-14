@@ -48,6 +48,8 @@ class TCComponent:
 
     memory_files = ()
 
+    needs_clock = False
+
     @property
     def pos(self) -> tuple[int, int]:
         return self.x, self.y

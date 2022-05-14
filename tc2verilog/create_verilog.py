@@ -220,6 +220,7 @@ class _VerilogSubmodule:
     parameters: dict[str, VerilogValue]
     inputs: dict[str, tuple[Source, int]]
     outputs: dict[str, tuple[Target, int]]
+    needs_clock: bool
 
     def _format_parameters(self, module: VerilogModule) -> str:
         assert all(isinstance(v, VerilogValue) for v in self.parameters.values()), self.parameters
@@ -230,6 +231,8 @@ class _VerilogSubmodule:
 
     def _format_ports(self, module: VerilogModule) -> str:
         out = []
+        if self.needs_clock:
+            out.extend(('.clk(clk)', '.rst(rst)'))
         for name, (source, size) in self.inputs.items():
             out.append(f'.{name}({module.get_source_verilog(source, size)})')
         for name, (target, size) in self.outputs.items():
@@ -307,8 +310,9 @@ class VerilogModule:
         self._register_source(target, self.get_source_size(source))
 
     def add_submodule(self, module_name: str, name: str, parameters: dict[str, VerilogValue],
-                      inputs: dict[str, tuple[Source, int]], outputs: dict[str, tuple[Target, int]]):
-        self._submodules.append(_VerilogSubmodule(module_name, name, parameters, inputs, outputs))
+                      inputs: dict[str, tuple[Source, int]], outputs: dict[str, tuple[Target, int]],
+                      needs_clock: bool):
+        self._submodules.append(_VerilogSubmodule(module_name, name, parameters, inputs, outputs, needs_clock))
         for port, (source, size) in inputs.items():
             self._register_target(source, size)
         for port, (target, size) in outputs.items():
@@ -580,7 +584,8 @@ class TriStateOutputGenerator(ComponentGenerator, priority=1, components=_Output
             },
             outputs={
                 "out": (out_target, self.component.size)
-            }
+            },
+            needs_clock=False
         )
 
 
@@ -660,7 +665,8 @@ class SimpleComponentGenerator(ComponentGenerator, priority=0, components=TCComp
                    for name, v in self.component.parameters.items()}
             },
             inputs=inputs,
-            outputs=outputs
+            outputs=outputs,
+            needs_clock=self.component.needs_clock,
         )
         parameters = {name: f(v) for name, v in self.component.parameters.items()
                       if (f := STANDARD_PARAMETERS_TO_JSON[name]) is not None}
