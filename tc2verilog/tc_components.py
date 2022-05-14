@@ -857,6 +857,12 @@ class FileRom(_NeedsClock):
 class Halt(_TCComponent):
     pins = [_In("en", (-1, 0), 1)]
 
+    @property
+    def parameters(self):
+        return {
+            "HALT_MESSAGE": self.custom_string_raw
+        }
+
 
 class Console(_NeedsClock):
     pins = [

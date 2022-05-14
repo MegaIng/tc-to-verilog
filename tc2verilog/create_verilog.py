@@ -164,6 +164,7 @@ STANDARD_PARAMETERS_TO_VERILOG: dict[str, Callable[[Any], VerilogValue]] = {
 
     "ARG_SIG": VString,
     "HEX_FILE": VString,
+    "HALT_MESSAGE": VString,
 
     "value": lambda t: VInt(*t),
     "count": lambda t: VInt(*t),
@@ -176,6 +177,7 @@ STANDARD_PARAMETERS_TO_JSON: dict[str, Callable[[Any], Any] | None] = {
 
     "ARG_SIG": lambda d: d,
     "HEX_FILE": lambda d: d,
+    "HALT_MESSAGE": lambda d: d,
 
     "value": lambda t: t[0],
     "count": lambda t: t[0],
