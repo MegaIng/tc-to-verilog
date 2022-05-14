@@ -15,7 +15,7 @@ module TC_Clock (en, out);
         if (en)
             outval = $time + START_TIME;
         else
-            outval = {64{1'bZ}};
+            outval = {64{1'b0}};
     end
     
     assign out = outval;
