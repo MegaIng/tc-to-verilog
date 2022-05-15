@@ -7,7 +7,7 @@ from collections import defaultdict
 from dataclasses import dataclass, field
 from os import PathLike
 from pathlib import Path
-from typing import Iterator, TypeAlias, Callable, Any, Sequence
+from typing import Iterator, TypeAlias, Callable, Any, Sequence, Literal
 
 import json
 
@@ -190,9 +190,20 @@ class _VerilogWire:
     output: Source
     input: Target
     size: int = 1
+    feeders: list[Any] = field(default_factory=list)
 
     def get_verilog(self, module: VerilogModule):
-        return f"wire [{self.size - 1}:0] {self.name};"
+        main_wire = f"wire [{self.size - 1}:0] {self.name};"
+        if len(self.feeders) <= 1:
+            return main_wire
+        else:
+            out = [main_wire]
+            sub_wires = []
+            for i in range(len(self.feeders)):
+                sub_wires.append(f"{self.name}_{i}")
+                out.append(f"wire [{self.size -1}:0] {self.name}_{i};")
+            out.append(f"assign {self.name} = {' | '.join(sub_wires)};")
+            return "\n    ".join(out)
 
 
 @dataclass
@@ -210,6 +221,7 @@ class _VerilogOutPort:
     name: str
     size: int
     input: Target
+    feeders: list[tuple[str, str] | Literal["assign"]] = field(default_factory=list)
 
     def get_verilog(self, module: VerilogModule):
         return f"output wire [{self.size - 1}:0] {self.name};"
@@ -238,7 +250,7 @@ class _VerilogSubmodule:
         for name, (source, size) in self.inputs.items():
             out.append(f'.{name}({module.get_source_verilog(source, size)})')
         for name, (target, size) in self.outputs.items():
-            out.append(f'.{name}({module.get_target_verilog(target, size)})')
+            out.append(f'.{name}({module.get_target_verilog(target, (self.name, name), size)})')
         return f'({", ".join(out)})'
 
     def get_verilog(self, module: VerilogModule) -> str:
@@ -253,7 +265,7 @@ class _VerilogAssign:
     def get_verilog(self, module: VerilogModule):
         ts = module.get_target_size(self.target)
         sources = [module.get_source_verilog(s, ts) for s in self.sources]
-        return f"assign {module.get_target_verilog(self.target, ts)} = {' | '.join(sources)};"
+        return f"assign {module.get_target_verilog(self.target, 'assign', ts)} = {' | '.join(sources)};"
 
 
 @dataclass
@@ -297,11 +309,13 @@ class VerilogModule:
     def _register_target(self, source: Source, size: int = None):
         obj = self._source_definitions[source]
 
-    def _register_source(self, target: Target, size: int = None):
+    def _register_source(self, target: Target, feed: tuple[str, str] | Literal["assign"], size: int = None):
         obj = self._target_definitions[target]
         if isinstance(obj, _VerilogWire):
             if size is not None:
                 obj.size = max(obj.size, size)
+        if feed not in obj.feeders:
+            obj.feeders.append(feed)
 
     def add_assign(self, source: Source, target: Target):
         if target in self._assigns:
@@ -309,7 +323,7 @@ class VerilogModule:
         else:
             self._assigns[target] = _VerilogAssign(target, [source])
         self._register_target(source, self.get_target_size(target))
-        self._register_source(target, self.get_source_size(source))
+        self._register_source(target, "assign", self.get_source_size(source))
 
     def add_submodule(self, module_name: str, name: str, parameters: dict[str, VerilogValue],
                       inputs: dict[str, tuple[Source, int]], outputs: dict[str, tuple[Target, int]],
@@ -318,7 +332,7 @@ class VerilogModule:
         for port, (source, size) in inputs.items():
             self._register_target(source, size)
         for port, (target, size) in outputs.items():
-            self._register_source(target, size)
+            self._register_source(target, (name, port), size)
 
     def split_wire(self, wire_target: Target, wire_source: Source) -> (Source, Target):
         """
@@ -362,12 +376,16 @@ class VerilogModule:
         obj = self._source_definitions[source]
         return obj.size
 
-    def get_target_verilog(self, target: Target, size: int) -> str:
+    def get_target_verilog(self, target: Target, feed: tuple[str, str] | Literal["assign"], size: int) -> str:
         obj = self._target_definitions[target]
+        if isinstance(obj, _VerilogWire) and len(obj.feeders) >1:
+            target_name = f"{target.name}_{obj.feeders.index(feed)}"
+        else:
+            target_name = target.name
         if obj.size == size:
-            return target.name
+            return target_name
         elif obj.size > size:
-            return f"{target.name}[{size - 1}:0]"
+            return f"{target_name}[{size - 1}:0]"
         else:
             raise NotImplementedError(target, obj, size)
 
@@ -532,28 +550,30 @@ class ArchInputGenerator(ComponentGenerator, priority=1, components=Input1_1B):
 
 class ArchOutputGenerator(ComponentGenerator, priority=1, components=Output1_1B):
     def generate(self, module: VerilogModule):
-        (cont_pos, cont_port), (value_pos, value_port) = self.component.positioned_pins
+        (control_pos, cont_port), (value_pos, value_port) = self.component.positioned_pins
 
-        source = self.base.sources_by_position[cont_pos]
-        target = module.add_output(f"arch_out_control", 1)
-        module.add_assign(source, target)
+        target_control = module.add_output(f"arch_out_control", 1)
         module.add_pin_info("arch_out_control", {
-            'position': cont_pos,
+            'position': control_pos,
             'bit_width': 1,
             'kind': "output",
             'name': f"arch_out_control"
         })
 
-        source = self.base.sources_by_position[value_pos]
-        target = module.add_output(f"arch_out_value", 8)
-        module.add_assign(source, target)
+        target_value = module.add_output(f"arch_out_value", 8)
         module.add_pin_info("arch_out_value", {
             'position': value_pos,
             'bit_width': 8,
             'kind': "output",
             'name': f"arch_out_value"
         })
+        if control_pos in self.base.sources_by_position:
+            source = self.base.sources_by_position[control_pos]
+            module.add_assign(source, target_control)
 
+        if value_pos in self.base.sources_by_position:
+            source = self.base.sources_by_position[value_pos]
+            module.add_assign(source, target_value)
 
 class TriStateOutputGenerator(ComponentGenerator, priority=1, components=_OutputSSz):
     component: _OutputSSz

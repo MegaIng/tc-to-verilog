@@ -285,7 +285,7 @@ class _Shl(_TCComponent):
         _In("in", (-1, -1), _size),
         _In("shift", (-1, 0), 8),
 
-        _Out("out", (1, 0), _size),
+        _Out("out", (1, -1), _size),
     ]
 
 
@@ -295,7 +295,7 @@ class _Shr(_TCComponent):
         _In("in", (-1, -1), _size),
         _In("shift", (-1, 0), 8),
 
-        _Out("out", (1, 0), _size),
+        _Out("out", (1, -1), _size),
     ]
 
 
@@ -854,7 +854,7 @@ class FileRom(_NeedsClock):
             yield FileRomMemoryFile(self.default_file_name, 8, self.file_size, p)
 
 
-class Halt(_TCComponent):
+class Halt(_NeedsClock):
     pins = [_In("en", (-1, 0), 1)]
 
     @property
