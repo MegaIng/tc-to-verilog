@@ -5,9 +5,10 @@ module TC_FileRom (clk, rst, en, address, out);
     parameter BIT_DEPTH = 302;
     parameter HEX_FILE = "test_jumps.mem";
     parameter ARG_SIG = "HEX_FILE=%s";
-    //parameter FILE_BYTES = 302;
+    parameter FILE_BYTES = 302;
+    integer filebytes;
     reg [1024*8:0] hexfile;
-    //integer filebytes;
+    
     input clk;
     input rst;
     input en;
@@ -59,7 +60,7 @@ module TC_FileRom (clk, rst, en, address, out);
         //$fclose(fid);
     end
 
-    always @ (address or rst) begin
+    always @ (address or en or rst) begin
         if (rst || !en) begin
             out = {64{1'b0}};
         end else if (address == {64{1'b1}}) begin
