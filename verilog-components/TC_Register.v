@@ -17,7 +17,7 @@ module TC_Register (clk, rst, load, save, in, out);
         value <= {BIT_WIDTH{1'b0}};
     end
     
-    always @ (posedge clk) begin
+    always @ (posedge clk or load) begin
         if (load)
             out <= value;
         else
