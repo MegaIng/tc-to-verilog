@@ -5,7 +5,7 @@ module TC_FileRom (clk, rst, en, address, out);
     parameter BIT_DEPTH = 302;
     parameter HEX_FILE = "test_jumps.mem";
     parameter ARG_SIG = "HEX_FILE=%s";
-    parameter FILE_BYTES = 302;
+//    parameter FILE_BYTES = 302;
     integer filebytes;
     reg [1024*8:0] hexfile;
     
@@ -15,7 +15,7 @@ module TC_FileRom (clk, rst, en, address, out);
     input [63:0] address;
     output reg [63:0] out;
 
-    reg [7:0] mem [0:BIT_DEPTH];
+    reg [BIT_WIDTH:0] mem [0:BIT_DEPTH];
     integer fd;
     integer fsize;
     integer data;
@@ -23,7 +23,7 @@ module TC_FileRom (clk, rst, en, address, out);
     
     initial begin
         hexfile = HEX_FILE;
-        //filebytes = FILE_BYTES;
+        filebytes = BIT_DEPTH;
 
         i = ($value$plusargs(ARG_SIG, hexfile));
         $display("loading %0s", hexfile);
@@ -66,18 +66,38 @@ module TC_FileRom (clk, rst, en, address, out);
         end else if (address == {64{1'b1}}) begin
             out = filebytes;
         end else begin
-            if (address < BIT_DEPTH) begin
+            if (address < BIT_DEPTH)
                 out[7:0] = mem[address];
+            else
+                out[7:0] = {8{1'b0}};
+            if (address+1 < BIT_DEPTH)
                 out[15:8] = mem[address+1];
+            else
+                out[15:8] = {8{1'b0}};
+            if (address+2 < BIT_DEPTH)
                 out[23:16] = mem[address+2];
+            else
+                out[23:16] = {8{1'b0}};
+            if (address+3 < BIT_DEPTH)
                 out[31:24] = mem[address+3];
+            else
+                out[31:24] = {8{1'b0}};
+            if (address+4 < BIT_DEPTH)
                 out[39:32] = mem[address+4];
+            else
+                out[39:32] = {8{1'b0}};
+            if (address+5 < BIT_DEPTH)
                 out[47:40] = mem[address+5];
+            else
+                out[47:40] = {8{1'b0}};
+            if (address+6 < BIT_DEPTH)
                 out[55:48] = mem[address+6];
+            else
+                out[55:48] = {8{1'b0}};
+            if (address+7 < BIT_DEPTH)
                 out[63:56] = mem[address+7];
-            end else begin
-                out = {64{1'b0}};
-            end
+            else
+                out[63:56] = {8{1'b0}};
         end
     end
 endmodule
