@@ -66,14 +66,18 @@ module TC_FileRom (clk, rst, en, address, out);
         end else if (address == {64{1'b1}}) begin
             out = filebytes;
         end else begin
-            out[7:0] = mem[address];
-            out[15:8] = mem[address+1];
-            out[23:16] = mem[address+2];
-            out[31:24] = mem[address+3];
-            out[39:32] = mem[address+4];
-            out[47:40] = mem[address+5];
-            out[55:48] = mem[address+6];
-            out[63:56] = mem[address+7];
+            if (address < BIT_DEPTH) begin
+                out[7:0] = mem[address];
+                out[15:8] = mem[address+1];
+                out[23:16] = mem[address+2];
+                out[31:24] = mem[address+3];
+                out[39:32] = mem[address+4];
+                out[47:40] = mem[address+5];
+                out[55:48] = mem[address+6];
+                out[63:56] = mem[address+7];
+            end else begin
+                out = {64{1'b0}};
+            end
         end
     end
 endmodule
