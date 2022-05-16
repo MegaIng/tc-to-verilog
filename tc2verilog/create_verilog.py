@@ -184,13 +184,27 @@ STANDARD_PARAMETERS_TO_JSON: dict[str, Callable[[Any], Any] | None] = {
 }
 
 
+def adjust_source(base_name: str, source_size: int, target_size: int) -> str:
+    if target_size == source_size:
+        return base_name
+    elif source_size < target_size:
+        return f"{{{{{target_size - source_size}{{1'b0}}}}, {base_name}}}"
+    else:
+        return f"{base_name}[{target_size - 1}:0]"
+
 @dataclass
 class _VerilogWire:
     name: str
     output: Source
     input: Target
     size: int = 1
-    feeders: list[Any] = field(default_factory=list)
+    feeders: list[tuple[Any, int]] = field(default_factory=list)
+
+    def feeder_id(self, f: Any) -> int | None:
+        for i, (v, _) in enumerate(self.feeders):
+            if v == f:
+                return i
+        return None
 
     def get_verilog(self, module: VerilogModule):
         main_wire = f"wire [{self.size - 1}:0] {self.name};"
@@ -199,9 +213,9 @@ class _VerilogWire:
         else:
             out = [main_wire]
             sub_wires = []
-            for i in range(len(self.feeders)):
-                sub_wires.append(f"{self.name}_{i}")
-                out.append(f"wire [{self.size -1}:0] {self.name}_{i};")
+            for i, (marker, size) in enumerate(self.feeders):
+                out.append(f"wire [{size - 1}:0] {self.name}_{i};")
+                sub_wires.append(adjust_source(f"{self.name}_{i}", size, self.size))
             out.append(f"assign {self.name} = {' | '.join(sub_wires)};")
             return "\n    ".join(out)
 
@@ -314,8 +328,8 @@ class VerilogModule:
         if isinstance(obj, _VerilogWire):
             if size is not None:
                 obj.size = max(obj.size, size)
-        if feed not in obj.feeders:
-            obj.feeders.append(feed)
+            if obj.feeder_id(feed) is None:
+                obj.feeders.append((feed, size))
 
     def add_assign(self, source: Source, target: Target):
         if target in self._assigns:
@@ -378,8 +392,9 @@ class VerilogModule:
 
     def get_target_verilog(self, target: Target, feed: tuple[str, str] | Literal["assign"], size: int) -> str:
         obj = self._target_definitions[target]
-        if isinstance(obj, _VerilogWire) and len(obj.feeders) >1:
-            target_name = f"{target.name}_{obj.feeders.index(feed)}"
+        if isinstance(obj, _VerilogWire) and len(obj.feeders) > 1:
+            assert obj.feeder_id(feed) is not None, feed
+            target_name = f"{target.name}_{obj.feeder_id(feed)}"
         else:
             target_name = target.name
         if obj.size == size:

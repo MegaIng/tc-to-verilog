@@ -577,7 +577,8 @@ class FastRam(_NeedsClock):
 
     @property
     def word_count(self):
-        return (self.byte_count + self.word_size - 1) // self.word_size  # ceil division
+        ws = self.word_size // 8
+        return (self.byte_count + ws - 1) // ws  # ceil division
 
     @property
     def parameters(self):
@@ -627,7 +628,8 @@ class Rom(_NeedsClock):
 
     @property
     def word_count(self):
-        return (self.byte_count + self.word_size - 1) // self.word_size  # ceil division
+        ws = self.word_size // 8
+        return (self.byte_count + ws - 1) // ws  # ceil division
 
     @property
     def parameters(self):
@@ -700,7 +702,8 @@ class DualLoadRam(_NeedsClock):
 
     @property
     def word_count(self):
-        return (self.byte_count + self.word_size - 1) // self.word_size  # ceil division
+        ws = self.word_size // 8
+        return (self.byte_count + ws - 1) // ws  # ceil division
 
     @property
     def parameters(self):
@@ -835,7 +838,7 @@ class FileRom(_NeedsClock):
     @property
     def parameters(self):
         return {
-            "BIT_DEPTH": 256,
+            "BIT_DEPTH": self.file_size,
             "ARG_SIG": f'HEX_FILE_{self.name_id}=%s',
             "HEX_FILE": f'{self.default_file_name}',
             # "FILE_BYTES": self.file_size,
