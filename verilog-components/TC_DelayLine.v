@@ -13,6 +13,7 @@ module TC_DelayLine (clk, rst, in, out);
     initial begin
         out <= {BIT_WIDTH{1'b0}};
         value <= {BIT_WIDTH{1'b0}};
+        reset <= 1;
     end
     
     always @ (posedge clk) begin

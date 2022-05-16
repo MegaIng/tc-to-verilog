@@ -777,10 +777,10 @@ class Program8_4(_NeedsClock):
 class ProgramWord(_NeedsClock):
     pins = [
         _In("address", (-13, -7), 16),
-        _Out("out0", (13, -7), 8),
-        _Out("out1", (13, -6), 8),
-        _Out("out2", (13, -5), 8),
-        _Out("out3", (13, -4), 8),
+        _Out("out0", (13, -7), 64),
+        _Out("out1", (13, -6), 64),
+        _Out("out2", (13, -5), 64),
+        _Out("out3", (13, -4), 64),
     ]
 
     @property
@@ -788,21 +788,21 @@ class ProgramWord(_NeedsClock):
         return 8 * (2 ** self.setting_2)
 
     @property
-    def byte_count(self) -> int:
+    def word_count(self) -> int:
         return self.setting_1
 
     @property
     def parameters(self):
         return {
             "BIT_WIDTH": self.word_size,
-            "BIT_DEPTH": 0,
+            "BIT_DEPTH": self.word_count,
             "ARG_SIG": f'HEX_FILE_{self.name_id}=%s',
             "HEX_FILE": self.default_file_name,
         }
 
     @property
     def default_file_name(self):
-        return f'{self.name_id}.s{self.byte_count}.m{self.word_size}'
+        return f'{self.name_id}.s{self.word_count}.m{self.word_size}'
 
     @property
     def memory_files(self):

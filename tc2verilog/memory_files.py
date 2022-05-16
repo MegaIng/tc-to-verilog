@@ -59,7 +59,15 @@ class ProgramMemoryFile(MemoryFile):
         name = self.program_mapping.get(level_id, "new_program")
         file = (schematic_folder / f"{name}.bin")
         if file.is_file():
-            return file.read_bytes()
+            out = bytearray()
+            big_endian_data = file.read_bytes()
+            if self.word_size == 8:
+                return big_endian_data
+            word_size = self.word_size // 8
+            for i in range(0, len(big_endian_data), word_size):
+                out.extend(int.from_bytes(big_endian_data[i:i + word_size], "big", signed=False)
+                           .to_bytes(word_size, "little"))
+            return out
         else:
             return b""
 

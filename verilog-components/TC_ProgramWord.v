@@ -51,7 +51,7 @@ module TC_ProgramWord (clk, rst, address, out0, out1, out2, out3);
                 end
                 i = i + 1;
             end
-            $display("read %0d bytes", i);
+            $display("read %0d bytes from %0d expected bytes", i, BIT_DEPTH);
         end else begin
             $display("file not found");
         end
