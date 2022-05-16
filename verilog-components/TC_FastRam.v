@@ -29,7 +29,7 @@ module TC_FastRam (clk, rst, load, save, address, in0, in1, in2, in3, out0, out1
         out3 <= {64{1'b0}};
     end
     
-    always @ (address or rst) begin
+    always @ (address or rst or load) begin
         if (load && !rst) begin
             if (BIT_WIDTH < 64)
                 out0 <= {{(64-BIT_WIDTH){1'b0}}, mem[address][BIT_WIDTH-1:0]};

@@ -16,7 +16,7 @@ module TC_Ram (clk, rst, load, save, address, in, out);
         out <= 8'b0000_0000;
     end
     
-    always @ (address or rst) begin
+    always @ (address or rst or load) begin
         if (load && !rst)
             out <= mem[address];
         else

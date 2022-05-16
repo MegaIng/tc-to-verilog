@@ -22,13 +22,13 @@ module TC_DualLoadRam (clk, rst, load0, save, address0, in, load1, address1, out
         out1 <= {64{1'b0}};
     end
 
-    always @ (address0 or rst) begin
+    always @ (address0 or rst or load0) begin
         if (load0 && !rst)
             out0 <= mem[address0];
         else
             out0 <= {BIT_WIDTH{1'b0}};
     end
-    always @ (address1 or rst) begin
+    always @ (address1 or rst or load1) begin
         if (load1 && !rst)
             out1 <= mem[address1];
         else
