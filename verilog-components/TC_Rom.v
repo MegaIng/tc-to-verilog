@@ -59,7 +59,7 @@ module TC_Rom (clk, rst, load, save, address, in, out);
         out <= {BIT_WIDTH{1'b0}};
     end
 
-    always @ (address or rst) begin
+    always @ (address or rst or load) begin
         if (load && !rst)
             out <= mem[address];
         else

@@ -33,7 +33,7 @@ module TC_CheapRamLat (clk, rst, load, save, address, in0, in1, in2, in3, ready,
         out3 <= {BIT_WIDTH{1'b0}};
     end
 
-    always @ (posedge clk) begin
+    always @ (posedge clk or load) begin
         if (rst) begin
             out0 <= {BIT_WIDTH{1'b0}};
             out1 <= {BIT_WIDTH{1'b0}};
