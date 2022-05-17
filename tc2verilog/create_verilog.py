@@ -69,7 +69,7 @@ class VInt(VerilogValue):
 
     def get_verilog(self, module: VerilogModule):
         if self.size is None:
-            return str(self.value)
+            return f"64'd{self.value}"
         else:
             return f"{self.size}'d{self.value}"
 
@@ -79,7 +79,7 @@ class VUUID(VerilogValue):
     value: int
 
     def get_verilog(self, module: VerilogModule):
-        return f"{self.value} ^ UUID"
+        return f"64'd{self.value} ^ UUID"
 
 
 @dataclass
@@ -262,9 +262,15 @@ class _VerilogSubmodule:
         if self.needs_clock:
             out.extend(('.clk(clk)', '.rst(rst)'))
         for name, (source, size) in self.inputs.items():
-            out.append(f'.{name}({module.get_source_verilog(source, size)})')
+            if source is not None:
+                out.append(f'.{name}({module.get_source_verilog(source, size)})')
+            else:
+                out.append(f".{name}({size}'0)")
         for name, (target, size) in self.outputs.items():
-            out.append(f'.{name}({module.get_target_verilog(target, (self.name, name), size)})')
+            if target is not None:
+                out.append(f'.{name}({module.get_target_verilog(target, (self.name, name), size)})')
+            else:
+                out.append(f".{name}()")
         return f'({", ".join(out)})'
 
     def get_verilog(self, module: VerilogModule) -> str:
@@ -344,9 +350,11 @@ class VerilogModule:
                       needs_clock: bool):
         self._submodules.append(_VerilogSubmodule(module_name, name, parameters, inputs, outputs, needs_clock))
         for port, (source, size) in inputs.items():
-            self._register_target(source, size)
+            if source is not None:
+                self._register_target(source, size)
         for port, (target, size) in outputs.items():
-            self._register_source(target, (name, port), size)
+            if target is not None:
+                self._register_source(target, (name, port), size)
 
     def split_wire(self, wire_target: Target, wire_source: Source) -> (Source, Target):
         """
@@ -666,23 +674,29 @@ class SimpleComponentGenerator(ComponentGenerator, priority=0, components=TCComp
         module.add_assign(temp_source, split_target)
         return (f"{name}_uin", wire_source), (f"{name}_uout", temp_target)
 
+    def stub_parent_unbuffered(self, name: str):
+        return (f"{name}_uin", None), (f"{name}_uout", None)
+
     def generate(self, module: VerilogModule):
-        inputs: dict[str, tuple[Source, int]] = {}
-        outputs: dict[str, tuple[Target, int]] = {}
+        inputs: dict[str, tuple[Source | None, int]] = {}
+        outputs: dict[str, tuple[Target| None, int]] = {}
         for pos, port in self.component.positioned_pins:
             match port:
                 case In(name, _, size):
                     if pos in self.base.sources_by_position:
                         inputs[name] = self.base.sources_by_position[pos], size
                     else:
-                        inputs[name] = module.get_constant(size, 0), size
+                        inputs[name] = None, size
                 case Out(name, _, size):
                     if pos in self.base.targets_by_position:
                         outputs[name] = self.base.targets_by_position[pos], size
+                    else:
+                        outputs[name] = None, size
                 case Unbuffered(name, _, size):
-                    if pos not in self.base.sources_by_position:
-                        continue
-                    if pos not in self.base.targets_by_position:
+                    if pos not in self.base.sources_by_position or pos not in self.base.targets_by_position:
+                        inp, out = self.stub_parent_unbuffered(name)
+                        inputs[inp[0]] = inp[1], size
+                        outputs[out[0]] = out[1], size
                         continue
                     source = self.base.sources_by_position[pos]
                     target = self.base.targets_by_position[pos]
